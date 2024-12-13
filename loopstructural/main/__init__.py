@@ -1,0 +1,1 @@
+from .loopstructuralwrapper import QgsProcessInputData
