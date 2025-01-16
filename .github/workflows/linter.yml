@@ -32,18 +32,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           cache: "pip"
-          cache-dependency-path: "requirements/development.txt"
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install project requirements
+      - name: Install dependencies
         run: |
-          python -m pip install -U pip setuptools wheel
-          python -m pip install -U -r requirements/development.txt
-
-      - name: Lint with flake8
+          python -m pip install --upgrade pip
+          pip install black ruff
+      - name: Autoformat with black
         run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 ${{ env.PROJECT_FOLDER }} --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings.
-          flake8 ${{ env.PROJECT_FOLDER }} --count --exit-zero --statistics
+          black .
+      - name: Lint with ruff
+        run: |
+          ruff check ${{env.PROJECT_FOLDER}} --fix
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: style fixes by ruff and autoformatting by black"
 
