@@ -1,6 +1,7 @@
 import pandas as pd
 from qgis.core import QgsVectorLayer
 
+
 class VectorLayerWrapper:
     def __init__(self, vector_layer: QgsVectorLayer):
         self.vector_layer = vector_layer

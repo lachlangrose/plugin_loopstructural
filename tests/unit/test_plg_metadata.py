@@ -58,20 +58,12 @@ class TestPluginMetadata(unittest.TestCase):
         self.assertLessEqual(len(__about__.__title_clean__), len(__about__.__title__))
 
         # QGIS versions
-        self.assertIsInstance(
-            __about__.__plugin_md__.get("general").get("qgisminimumversion"), str
-        )
+        self.assertIsInstance(__about__.__plugin_md__.get("general").get("qgisminimumversion"), str)
 
-        self.assertIsInstance(
-            __about__.__plugin_md__.get("general").get("qgismaximumversion"), str
-        )
+        self.assertIsInstance(__about__.__plugin_md__.get("general").get("qgismaximumversion"), str)
 
-        min_version_parsed = parse(
-            __about__.__plugin_md__.get("general").get("qgisminimumversion")
-        )
-        max_version_parsed = parse(
-            __about__.__plugin_md__.get("general").get("qgismaximumversion")
-        )
+        min_version_parsed = parse(__about__.__plugin_md__.get("general").get("qgisminimumversion"))
+        max_version_parsed = parse(__about__.__plugin_md__.get("general").get("qgismaximumversion"))
         self.assertLessEqual(min_version_parsed, max_version_parsed)
 
     def test_version_semver(self):

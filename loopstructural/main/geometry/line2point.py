@@ -9,8 +9,9 @@ from qgis.core import (
     QgsField,
     QgsFields,
     QgsWkbTypes,
-    QgsVectorFileWriter
+    QgsVectorFileWriter,
 )
+
 
 def line_to_point(input_layer_path, output_layer_path):
     # Load the input line layer

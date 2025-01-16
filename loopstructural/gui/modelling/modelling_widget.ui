@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -57,7 +57,7 @@
                <x>10</x>
                <y>20</y>
                <width>551</width>
-               <height>111</height>
+               <height>130</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout_2">
@@ -73,6 +73,9 @@
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose a layer representing the map extent of the area to be modelled. The model area will be the axis aligned extent of this layer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                </widget>
               </item>
               <item row="1" column="0">
@@ -84,6 +87,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QSpinBox" name="heightSpinBox">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the top of the model bounding box, above sea level. Note that the dataset need to be withing the bounding box otherwise they will not be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="maximum">
                  <number>10000</number>
                 </property>
@@ -101,6 +107,9 @@
               </item>
               <item row="2" column="1">
                <widget class="QSpinBox" name="depthSpinBox">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the bottom of the model bounding box. Negative values are below sea level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="minimum">
                  <number>-10000</number>
                 </property>
@@ -120,7 +129,25 @@
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QgsMapLayerComboBox" name="DtmLayer"/>
+               <widget class="QgsMapLayerComboBox" name="DtmLayer">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose a raster layer as a digital terrane model. If no DTM is chosen the observations are all considered to be located at 0 elevation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="rotationLabel">
+                <property name="text">
+                 <string>Rotation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QDoubleSpinBox" name="rotationDoubleSpinBox">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rotation of the map/dataset for modelling. The model bounding box is set to be aligned to the rotated map.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -153,7 +180,11 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QgsMapLayerComboBox" name="basalContactsLayer"/>
+               <widget class="QgsMapLayerComboBox" name="basalContactsLayer">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A vector layer of points/lines that represents the basal (or top) contacts of the units being modelled. There must be a column identifying the unit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label">
@@ -163,7 +194,11 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QgsFieldComboBox" name="unitNameField"/>
+               <widget class="QgsFieldComboBox" name="unitNameField">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Identifier for the geological unit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="structuralDataLabel">
@@ -173,7 +208,14 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QgsMapLayerComboBox" name="structuralDataLayer"/>
+               <widget class="QgsMapLayerComboBox" name="structuralDataLayer">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shape file representing orientation data assocaited with stratigraphy/lithology. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="allowEmptyLayer">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item row="3" column="0">
                <widget class="QLabel" name="label_2">
@@ -184,6 +226,9 @@
               </item>
               <item row="3" column="1">
                <widget class="QComboBox" name="orientationType">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Strike and dip using right hand rule or dip direction/dip convention&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <item>
                  <property name="text">
                   <string>Strike/Dip</string>
@@ -204,7 +249,11 @@
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QgsFieldComboBox" name="orientationField"/>
+               <widget class="QgsFieldComboBox" name="orientationField">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Column representing the strike/dip direction angle in degrees&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="label_6">
@@ -214,7 +263,11 @@
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QgsFieldComboBox" name="dipField"/>
+               <widget class="QgsFieldComboBox" name="dipField">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Column representing the dip angle in degrees&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
               <item row="6" column="0">
                <widget class="QLabel" name="label_23">
@@ -224,7 +277,11 @@
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QgsFieldComboBox" name="structuralDataUnitName"/>
+               <widget class="QgsFieldComboBox" name="structuralDataUnitName">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Column representing which unit the orientation measurement belongs to. This is used to differentiate between non-conformable units.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -338,18 +395,7 @@
              <height>281</height>
             </rect>
            </property>
-           <layout class="QGridLayout" name="stratigraphicColumnContainer">
-            <item row="0" column="1">
-             <widget class="QSpinBox" name="spinBox"/>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <layout class="QGridLayout" name="stratigraphicColumnContainer"/>
           </widget>
          </widget>
         </item>
@@ -541,7 +587,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <item>
-               <widget class="QListWidget" name="listWidget"/>
+               <widget class="QListWidget" name="modelList"/>
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_9">
@@ -553,7 +599,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_7">
+             <widget class="QPushButton" name="runModelButton">
               <property name="text">
                <string>Run</string>
               </property>
@@ -589,124 +635,11 @@
           <property name="title">
            <string>Export Model</string>
           </property>
-          <widget class="QWidget" name="formLayoutWidget_4">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>19</y>
-             <width>561</width>
-             <height>177</height>
-            </rect>
-           </property>
-           <layout class="QFormLayout" name="formLayout_5">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>File Format</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="comboBox_2">
-              <item>
-               <property name="text">
-                <string>vtk</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>gOcad</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>geoh5</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>omf</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Stratigraphic Surfaces</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="checkBox">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>Fault Surfaces</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QCheckBox" name="checkBox_2">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>Block Model</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QCheckBox" name="checkBox_3">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>Stratigraphy Data</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QCheckBox" name="checkBox_4">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="label_13">
-              <property name="text">
-               <string>Fault Data</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QCheckBox" name="checkBox_5">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
           <widget class="QPushButton" name="saveButton">
            <property name="geometry">
             <rect>
-             <x>20</x>
-             <y>190</y>
+             <x>10</x>
+             <y>230</y>
              <width>75</width>
              <height>23</height>
             </rect>
@@ -714,6 +647,154 @@
            <property name="text">
             <string>Save</string>
            </property>
+          </widget>
+          <widget class="QWidget" name="verticalLayoutWidget_16">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>551</width>
+             <height>203</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_20">
+            <item>
+             <layout class="QFormLayout" name="formLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>File Format</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="fileFormatCombo">
+                <item>
+                 <property name="text">
+                  <string>vtk</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>gOcad</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>geoh5</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>omf</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Stratigraphic Surfaces</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="stratigraphicSurfacesCheckBox">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Fault Surfaces</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="faultSurfacesCheckBox">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>Block Model</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QCheckBox" name="blockModelCheckBox">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Stratigraphy Data</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QCheckBox" name="StratigraphicDataCheckBox">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="modelNameLabel">
+                <property name="text">
+                 <string>Model Name</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="modelNameLineEdit"/>
+              </item>
+              <item row="6" column="1">
+               <widget class="QCheckBox" name="faultDataCheckBox">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_24">
+                <property name="text">
+                 <string>Directory</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QLineEdit" name="path"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pathButton">
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Fault Data</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -730,7 +811,7 @@
                <x>10</x>
                <y>20</y>
                <width>561</width>
-               <height>291</height>
+               <height>109</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout_6">
@@ -752,6 +833,27 @@
                <widget class="QLabel" name="label_15">
                 <property name="text">
                  <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QPushButton" name="pushButton_5">
+                <property name="text">
+                 <string>PushButton</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="faultDisplacementsLabel">
+                <property name="text">
+                 <string>Fault Displacements</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QPushButton" name="pushButton_6">
+                <property name="text">
+                 <string>PushButton</string>
                 </property>
                </widget>
               </item>

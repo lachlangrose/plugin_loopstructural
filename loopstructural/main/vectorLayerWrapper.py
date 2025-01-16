@@ -1,5 +1,7 @@
 import pandas as pd
 from qgis.core import QgsWkbTypes
+
+
 def qgsLayerToDataFrame(layer, dtm) -> pd.DataFrame:
     """Convert a vector layer to a pandas DataFrame
     samples the geometry using either points or the vertices of the lines

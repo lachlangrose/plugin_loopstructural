@@ -121,12 +121,8 @@ myst_substitutions = {
     "author": author,
     "date_update": datetime.now().strftime("%d %B %Y"),
     "description": description,
-    "qgis_version_max": __about__.__plugin_md__.get("general").get(
-        "qgismaximumversion"
-    ),
-    "qgis_version_min": __about__.__plugin_md__.get("general").get(
-        "qgisminimumversion"
-    ),
+    "qgis_version_max": __about__.__plugin_md__.get("general").get("qgismaximumversion"),
+    "qgis_version_min": __about__.__plugin_md__.get("general").get("qgisminimumversion"),
     "repo_url": __about__.__uri__,
     "title": project,
     "version": version,

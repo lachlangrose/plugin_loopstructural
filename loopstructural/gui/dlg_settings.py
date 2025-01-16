@@ -32,9 +32,7 @@ from loopstructural.toolbelt.preferences import PlgSettingsStructure
 # ########## Globals ###############
 # ##################################
 
-FORM_CLASS, _ = uic.loadUiType(
-    Path(__file__).parent / "{}.ui".format(Path(__file__).stem)
-)
+FORM_CLASS, _ = uic.loadUiType(Path(__file__).parent / "{}.ui".format(Path(__file__).stem))
 
 
 # ############################################################################
@@ -67,20 +65,15 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
 
         # customization
         self.btn_help.setIcon(QIcon(QgsApplication.iconPath("mActionHelpContents.svg")))
-        self.btn_help.pressed.connect(
-            partial(QDesktopServices.openUrl, QUrl(__uri_homepage__))
-        )
-
+        self.btn_help.pressed.connect(partial(QDesktopServices.openUrl, QUrl(__uri_homepage__)))
 
         self.btn_report.setIcon(
             QIcon(QgsApplication.iconPath("console/iconSyntaxErrorConsole.svg"))
         )
-        
+
         self.btn_report.pressed.connect(
             partial(QDesktopServices.openUrl, QUrl(f"{__uri_tracker__}new/choose"))
         )
-        
-
 
         self.btn_reset.setIcon(QIcon(QgsApplication.iconPath("mActionUndo.svg")))
         self.btn_reset.pressed.connect(self.reset_settings)
@@ -115,7 +108,6 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         self.opt_debug.setChecked(settings.debug_mode)
         self.lbl_version_saved_value.setText(settings.version)
 
-
     def reset_settings(self):
         """Reset settings to default values (set in preferences.py module)."""
         default_settings = PlgSettingsStructure()
@@ -126,11 +118,12 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         # update the form
         self.load_settings()
 
+
 class PlgOptionsFactory(QgsOptionsWidgetFactory):
     """Factory for options widget."""
 
     def __init__(self):
-        """Constructor."""        
+        """Constructor."""
         super().__init__()
 
     def icon(self) -> QIcon:
@@ -138,7 +131,7 @@ class PlgOptionsFactory(QgsOptionsWidgetFactory):
 
         :return: _description_
         :rtype: QIcon
-        """        
+        """
         return QIcon(str(__icon_path__))
 
     def createWidget(self, parent) -> ConfigOptionsPage:
@@ -149,7 +142,7 @@ class PlgOptionsFactory(QgsOptionsWidgetFactory):
 
         :return: options page for tab widget
         :rtype: ConfigOptionsPage
-        """        
+        """
         return ConfigOptionsPage(parent)
 
     def title(self) -> str:
@@ -157,7 +150,7 @@ class PlgOptionsFactory(QgsOptionsWidgetFactory):
 
         :return: plugin title from about module
         :rtype: str
-        """        
+        """
         return __title__
 
     def helpId(self) -> str:
@@ -167,4 +160,3 @@ class PlgOptionsFactory(QgsOptionsWidgetFactory):
         :rtype: str
         """
         return __uri_homepage__
-

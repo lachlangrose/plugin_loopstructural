@@ -41,13 +41,10 @@ class LoopstructuralPlugin:
         """
         self.iface = iface
         self.log = PlgLogger().log
-        
 
         # translation
         # initialize the locale
-        self.locale: str = QgsSettings().value("locale/userLocale", QLocale().name())[
-            0:2
-        ]
+        self.locale: str = QgsSettings().value("locale/userLocale", QLocale().name())[0:2]
         locale_path: Path = (
             DIR_PLUGIN_ROOT / "resources" / "i18n" / f"{__title__.lower()}_{self.locale}.qm"
         )
@@ -65,9 +62,9 @@ class LoopstructuralPlugin:
         self.iface.registerOptionsWidgetFactory(self.options_factory)
 
         # setup a menu option for LoopStructural
-        self.menu = QMenu("LoopStructural",self.iface.mainWindow())
+        self.menu = QMenu("LoopStructural", self.iface.mainWindow())
         self.iface.mainWindow().menuBar().addMenu(self.menu)
-        
+
         # -- Actions
         self.action_help = QAction(
             QgsApplication.getThemeIcon("mActionHelpContents.svg"),
@@ -84,23 +81,19 @@ class LoopstructuralPlugin:
             self.iface.mainWindow(),
         )
         self.action_settings.triggered.connect(
-            lambda: self.iface.showOptionsDialog(
-                currentPage="mOptionsPage{}".format(__title__)
-            )
+            lambda: self.iface.showOptionsDialog(currentPage="mOptionsPage{}".format(__title__))
         )
         self.action_modelling = QAction(
             QgsApplication.getThemeIcon("console/iconSettingsConsole.svg"),
             self.tr("Modelling"),
             self.iface.mainWindow(),
         )
-        
+
         self.menu.addAction(self.action_modelling)
-        
+
         # -- Menu
         self.iface.addPluginToMenu(__title__, self.action_settings)
         self.iface.addPluginToMenu(__title__, self.action_help)
-
-        
 
         # -- Help menu
 
@@ -115,19 +108,19 @@ class LoopstructuralPlugin:
             partial(QDesktopServices.openUrl, QUrl(__uri_homepage__))
         )
 
-        self.iface.pluginHelpMenu().addAction(
-            self.action_help_plugin_menu_documentation
-        )
+        self.iface.pluginHelpMenu().addAction(self.action_help_plugin_menu_documentation)
 
         ## --- dock widget
         self.modelling_dockwidget = QDockWidget(self.tr("Modelling"), self.iface.mainWindow())
-        self.model_setup_widget = Modelling(self.iface.mainWindow())
+        self.model_setup_widget = Modelling(
+            self.iface.mainWindow(), mapCanvas=self.iface.mapCanvas()
+        )
         self.modelling_dockwidget.setWidget(self.model_setup_widget)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.modelling_dockwidget)
         self.modelling_dockwidget.close()
-        self.action_modelling.triggered.connect(self.modelling_dockwidget.toggleViewAction().trigger)
-
-
+        self.action_modelling.triggered.connect(
+            self.modelling_dockwidget.toggleViewAction().trigger
+        )
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
@@ -149,13 +142,9 @@ class LoopstructuralPlugin:
         # -- Clean up preferences panel in QGIS settings
         self.iface.unregisterOptionsWidgetFactory(self.options_factory)
 
-        
-
         # remove from QGIS help/extensions menu
         if self.action_help_plugin_menu_documentation:
-            self.iface.pluginHelpMenu().removeAction(
-                self.action_help_plugin_menu_documentation
-            )
+            self.iface.pluginHelpMenu().removeAction(self.action_help_plugin_menu_documentation)
 
         # remove actions
         del self.action_settings
