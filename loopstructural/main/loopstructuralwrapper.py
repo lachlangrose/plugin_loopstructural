@@ -2,14 +2,15 @@ from LoopStructural import GeologicalModel
 from LoopStructural.modelling.input import ProcessInputData
 from LoopStructural.utils import EuclideanTransformation
 from .vectorLayerWrapper import qgsLayerToDataFrame
-
+import pandas as pd
 
 class QgsProcessInputData(ProcessInputData):
     def __init__(
         self,
         basal_contacts,
         stratigraphic_column: dict,
-        faults,
+        fault_trace,
+        fault_properties,
         structural_data,
         dtm,
         columnmap: dict,
@@ -21,7 +22,7 @@ class QgsProcessInputData(ProcessInputData):
     ):
 
         contact_locations = qgsLayerToDataFrame(basal_contacts, dtm)
-        fault_data = qgsLayerToDataFrame(faults, dtm)
+        fault_data = qgsLayerToDataFrame(fault_trace, dtm)
         contact_orientations = qgsLayerToDataFrame(structural_data, dtm)
         thicknesses = {}
         for key in stratigraphic_column.keys():
@@ -31,10 +32,11 @@ class QgsProcessInputData(ProcessInputData):
             stratigraphic_order[stratigraphic_column[key]['order']] = key
         stratigraphic_order = [('sg', stratigraphic_order)]
         roidf = qgsLayerToDataFrame(roi, None)
-        minx = roidf['X'].min()
-        maxx = roidf['X'].max()
-        miny = roidf['Y'].min()
-        maxy = roidf['Y'].max()
+        roi_rectangle = roi.extent()
+        minx = roi_rectangle.xMinimum()
+        maxx = roi_rectangle.xMaximum()
+        miny = roi_rectangle.yMinimum()
+        maxy = roi_rectangle.yMaximum()
         # transformer = EuclideanTransformation(minx,miny,rotation)
 
         origin = (minx, miny, bottom)
@@ -60,6 +62,8 @@ class QgsProcessInputData(ProcessInputData):
 
             if dip_direction:
                 contact_orientations['strike'] = contact_orientations['strike'] + 90
+        fault_properties=pd.DataFrame(fault_properties,columns=['fault_name','dip','displacement','major_axis','intermediate_axis','minor_axis','active','azimuth','crs'])
+
 
         super().__init__(
             contacts=contact_locations,
@@ -67,6 +71,7 @@ class QgsProcessInputData(ProcessInputData):
             thicknesses=thicknesses,
             fault_locations=fault_data,
             contact_orientations=contact_orientations,
+            fault_properties=fault_properties,
             origin=origin,
             maximum=maximum,
         )

@@ -12,11 +12,14 @@ from qgis.PyQt.QtWidgets import (
     QDoubleSpinBox,
     QSpinBox,
     QFileDialog,
+    QPushButton,QColorDialog
 )
-
+from qgis.core import QgsProject, QgsEllipse, QgsPoint, QgsVectorLayer, QgsFeature
 import random
 import os
 from ...main import QgsProcessInputData
+from ...main.geometry.calculateLineAzimuth import calculateAverageAzimuth
+from LoopStructural.utils import random_hex_colour
 
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
@@ -57,6 +60,18 @@ class ModellingWidget(QWidget):
         self.runModelButton.clicked.connect(self.onRunModel)
         self.pathButton.clicked.connect(self.onClickPath)
         self.saveButton.clicked.connect(self.onSaveModel)
+        self.path.textChanged.connect(self.onPathTextChanged)
+        self.faultSelection.currentIndexChanged.connect(self.onSelectedFaultChanged)
+        self.faultDipValue.valueChanged.connect(lambda value: self.updateFaultProperty('dip', value))
+        self.faultDisplacementValue.valueChanged.connect(lambda value: self.updateFaultProperty('displacement', value))
+        self.faultActiveCheckBox.stateChanged.connect(lambda value: self.updateFaultProperty('active', value))
+        self.faultMajorAxisLength.valueChanged.connect(lambda value: self.updateFaultProperty('major_axis', value))
+        self.faultIntermediateAxisLength.valueChanged.connect(lambda value: self.updateFaultProperty('intermediate_axis', value))
+        self.faultMinorAxisLength.valueChanged.connect(lambda value: self.updateFaultProperty('minor_axis', value))
+        # self.faultCentreX.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
+        # self.faultCentreY.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
+        # self.faultCentreZ.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
+        self.addFaultElipseToMap.clicked.connect(self.drawFaultElipse)
 
     def onInitialiseModel(self):
         columnmap = {
@@ -70,7 +85,8 @@ class ModellingWidget(QWidget):
             processor = QgsProcessInputData(
                 basal_contacts=self.basalContactsLayer.currentLayer(),
                 stratigraphic_column=self._units,
-                faults=self.faultTraceLayer.currentLayer(),
+                fault_trace=self.faultTraceLayer.currentLayer(),
+                fault_properties= self._faults,
                 structural_data=self.structuralDataLayer.currentLayer(),
                 dtm=self.DtmLayer.currentLayer(),
                 columnmap=columnmap,
@@ -81,13 +97,13 @@ class ModellingWidget(QWidget):
                 rotation=self.rotationDoubleSpinBox.value(),
             )
             self.model = processor.get_model()
-            for feature in self.model.features:
-                item = QListWidgetItem()
-                item.setText(feature.name)
-                item.setBackground(
-                    QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-                )
-                self.modelList.addItem(item)
+            # for feature in self.model.features:
+            #     item = QListWidgetItem()
+            #     item.setText(feature.name)
+            #     item.setBackground(
+            #         QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            #     )
+            #     self.modelList.addItem(item)
         except Exception as e:
             print(e)
 
@@ -128,7 +144,9 @@ class ModellingWidget(QWidget):
         self.faultNameField.setLayer(layer)
         self.faultDipField.setLayer(layer)
         self.faultDisplacementField.setLayer(layer)
-
+        self._faults={} #reset faults
+        self.onSelectedFaultChanged(-1)
+        self.initFaultSelector()
     def onUnitFieldChanged(self, field):
         unique_values = set()
         layer = self.unitNameField.layer()
@@ -136,49 +154,174 @@ class ModellingWidget(QWidget):
             field_index = layer.fields().indexFromName(field)
             for feature in layer.getFeatures():
                 unique_values.add(feature[field_index])
+        colours = random_hex_colour(n=len(unique_values))
         self._units = dict(
             zip(
                 list(unique_values),
-                [{'thickness': 10.0, 'order': i} for i in range(len(unique_values))],
+                [{'thickness': 10.0, 'order': i,'name':u,'color':colours[i]} for i,u in enumerate(unique_values)],
             )
         )
         self._initialiseStratigraphicColumn()
 
+    def initFaultSelector(self):
+        self.faultSelection.clear()
+        self.resetFaultField()
+        if self._faults:
+            faults = list(self._faults.keys())
+            self.faultSelection.addItems(faults)
     def onFaultFieldChanged(self, field):
         name_field = self.faultNameField.currentField()
         dip_field = self.faultDipField.currentField()
         displacement_field = self.faultDisplacementField.currentField()
         layer = self.faultNameField.layer()
-        if name_field and dip_field and displacement_field and layer:
+        if name_field and layer:
             self._faults = {}
             for feature in layer.getFeatures():
                 self._faults[feature[name_field]] = {
-                    'dip': feature[dip_field],
-                    'displacement': feature[displacement_field],
-                }
-            if self._faults:
-                faults = list(self._faults.keys())
-                self.faultSelection.clear()
-                self.faultSelection.addItems(faults)
+                    'dip': feature.attributeMap().get(dip_field,0),
+                    'displacement': feature.attributeMap().get(displacement_field,0),
+                    'centre': feature.geometry().centroid().asPoint(),
+                    'major_axis': feature.geometry().length(),
+                    'intermediate_axis':feature.geometry().length(),
+                    'minor_axis':feature.geometry().length()/3,
+                    'active': True,
+                    "azimuth":calculateAverageAzimuth(feature.geometry()),
+                    "crs":layer.crs().authid()
 
+
+                }
+        self.initFaultSelector()
+    def onSelectedFaultChanged(self, index):
+        if index >= 0:
+            fault = self.faultSelection.currentText()
+            self.faultDipValue.setValue(self._faults[fault]['dip'])
+            self.faultDisplacementValue.setValue(self._faults[fault]['displacement'])
+            self.faultActiveCheckBox.setChecked(self._faults[fault]['active'])
+            self.faultMajorAxisLength.setValue(self._faults[fault]['major_axis'])
+            self.faultIntermediateAxisLength.setValue(self._faults[fault]['intermediate_axis'])
+            self.faultMinorAxisLength.setValue(self._faults[fault]['minor_axis'])
+            self.faultCentreX.setValue(self._faults[fault]['centre'].x())
+            self.faultCentreY.setValue(self._faults[fault]['centre'].y())
+            # self.faultCentreZ.setValue(self._faults[fault]['centre'].z())
+            self._onActiveFaultChanged(self._faults[fault]['active'])
+    def resetFaultField(self):
+        self.faultDipValue.setValue(0)
+        self.faultDisplacementValue.setValue(0)
+        self.faultActiveCheckBox.setChecked(0)
+        self.faultMajorAxisLength.setValue(0)
+        self.faultIntermediateAxisLength.setValue(0)
+        self.faultMinorAxisLength.setValue(0)
+        self.faultCentreX.setValue(0)
+        self.faultCentreY.setValue(0)
+        # self.faultCentreZ.setValue(self._faults[fault]['centre'].z())
+        self._onActiveFaultChanged(False)
+    def _onActiveFaultChanged(self, value):
+        self.faultDipValue.setEnabled(value)
+        self.faultDisplacementValue.setEnabled(value)
+        self.faultMajorAxisLength.setEnabled(value)
+        self.faultIntermediateAxisLength.setEnabled(value)
+        self.faultMinorAxisLength.setEnabled(value)
+        self.faultCentreX.setEnabled(value)
+        self.faultCentreY.setEnabled(value)
+        # self.faultCentreZ.setEnabled(value)
+            
+
+    def updateFaultProperty(self, prop, value):
+        fault = self.faultSelection.currentText()
+        self._faults[fault][prop] = value
+        if prop == 'active':
+            self._onActiveFaultChanged(value)
+        
+    def drawFaultElipse(self):
+        fault = self.faultSelection.currentText()
+        if fault:
+            centre = self._faults[fault]['centre']
+            major_axis = self._faults[fault]['major_axis']
+            intermediate_axis = self._faults[fault]['intermediate_axis']
+            minor_axis = self._faults[fault]['minor_axis']
+            azimuth = self._faults[fault].get('azimuth', 0)
+            crs = self._faults[fault].get('crs', 'EPSG:4326')
+            # Create an ellipsoid centered at the fault center
+            ellipsoid = QgsEllipse(
+            QgsPoint(centre.x(), centre.y()),
+            major_axis / 2,
+            minor_axis / 2,
+            azimuth
+            )
+
+            # Add the ellipsoid to the map canvas
+            ellipsoid_layer = QgsVectorLayer(f"Polygon?crs={crs}", f"{fault}:  Ellipsoid", "memory")
+            ellipsoid_layer_provider = ellipsoid_layer.dataProvider()
+            ellipsoid_feature = QgsFeature()
+            ellipsoid_feature.setGeometry(ellipsoid.toPolygon())
+            ellipsoid_layer_provider.addFeatures([ellipsoid_feature])
+
+            QgsProject.instance().addMapLayer(ellipsoid_layer)
+
+    def _getSortedStratigraphicColumn(self):
+
+        return sorted(self._units.items(), key=lambda x: x[1]['order'])
     def _initialiseStratigraphicColumn(self):
         while self.stratigraphicColumnContainer.count():
             child = self.stratigraphicColumnContainer.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-        for i, (unit, value) in enumerate(self._units.items()):
+        # self.stratigraphicColumnContainer.setColumnCount(5)
+        # self.stratigraphicColumnContainer.setRowCount(len(self._units))
+        # self.stratigraphicColumnContainer.setHorizontalHeaderLabels(
+        #     ["Unit", "Thickness", "Order","Up","Down"]
+        # )
+        def create_lambda(i, direction):
+            return lambda: self.onOrderChanged(i, i + direction)
+        def create_color_picker(unit):
+            def pick_color():
+                color = QColorDialog.getColor()
+                if color.isValid():
+                    self._units[unit]['color'] = color.name()
+                    self._initialiseStratigraphicColumn()
+            return pick_color
+        for i, (unit, value) in enumerate(self._getSortedStratigraphicColumn()):
             label = QLabel(unit)
             spin_box = QDoubleSpinBox(maximum=10000, minimum=0)
             spin_box.setValue(value['thickness'])
-            order = QSpinBox()
-            order.setValue(value['order'])
+            order = QLabel()
+            order.setText(str(value['order']))
+            up = QPushButton("↑")
+            down = QPushButton("↓")
+            color_picker = QPushButton("Pick Colour")
+            print(value)
+            # Set background color for the row
+            background_color = value.get('color', "#ffffff")
+            label.setStyleSheet(f"background-color: {background_color};")
+            spin_box.setStyleSheet(f"background-color: {background_color};")
+            order.setStyleSheet(f"background-color: {background_color};")
+            up.setStyleSheet(f"background-color: {background_color};")
+            down.setStyleSheet(f"background-color: {background_color};")
+            color_picker.setStyleSheet(f"background-color: {background_color};")
             self.stratigraphicColumnContainer.addWidget(label, i, 0)
             self.stratigraphicColumnContainer.addWidget(spin_box, i, 1)
             self.stratigraphicColumnContainer.addWidget(order, i, 2)
+            self.stratigraphicColumnContainer.addWidget(up, i, 3)
+            self.stratigraphicColumnContainer.addWidget(down, i, 4)
+            self.stratigraphicColumnContainer.addWidget(color_picker, i, 5)
+            up.clicked.connect(create_lambda(i, -1))
+            down.clicked.connect(create_lambda(i, 1))
+            color_picker.clicked.connect(create_color_picker(unit))
+    def onOrderChanged(self, old_index,new_index):
+        if new_index < 0 or new_index >= len(self._units):
+            return
+        units = dict(self._units)  # update a copy
+        for unit, value in self._units.items():
+            if value['order'] == old_index:
+                units[unit]['order'] = new_index
+            elif value['order'] == new_index:
+                units[unit]['order'] = old_index
+        self._units = units  # set to copy
+        self._initialiseStratigraphicColumn()
 
     def onSaveModel(self):
         fileFormat = self.fileFormatCombo.currentText()
-        path = self.outputPath
+        path = self.path.text()#
         name = self.modelNameLineEdit.text()
         filename = os.path.join(path, name + "." + fileFormat)
 
@@ -196,7 +339,8 @@ class ModellingWidget(QWidget):
         #     self.model.save_block_model(os.path.join(path, name + "_block." + fileFormat))
         # if self.
         # pass
-
+    def onPathTextChanged(self, text):
+        self.outputPath = text
     def onClickPath(self):
         self.outputPath = QFileDialog.getExistingDirectory(None, "Select output path for model")
 

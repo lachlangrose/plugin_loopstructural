@@ -30,7 +30,9 @@ def qgsLayerToDataFrame(layer, dtm) -> pd.DataFrame:
             if geom.type() == QgsWkbTypes.PointGeometry:
                 points = geom.asMultiPoint()
             elif geom.type() == QgsWkbTypes.LineGeometry:
-                points = geom.asMultiPolyline()[0]
+                for line in geom.asMultiPolyline():
+                    points.extend(line)
+                # points = geom.asMultiPolyline()[0]
         else:
             if geom.type() == QgsWkbTypes.PointGeometry:
                 points = [geom.asPoint()]
@@ -41,6 +43,10 @@ def qgsLayerToDataFrame(layer, dtm) -> pd.DataFrame:
             data['X'].append(p.x())
             data['Y'].append(p.y())
             if dtm is not None:
+                 # Replace with your coordinates
+
+                # Extract the value at the point
+                z_value = dtm.dataProvider().identify(p, QgsRaster.IdentifyFormatValue)
                 z_value = dtm.valueAt(p.x(), p.y())
                 data['Z'].append(z_value)
             if dtm is None:
