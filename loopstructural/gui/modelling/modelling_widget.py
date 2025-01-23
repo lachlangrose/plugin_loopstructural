@@ -29,13 +29,8 @@ class ModellingWidget(QWidget):
         uic.loadUi(os.path.join(os.path.dirname(__file__), "modelling_widget.ui"), self)
         self.mapCanvas = mapCanvas
         self.rotationDoubleSpinBox.setValue(mapCanvas.rotation())
-        self.basalContactsLayer.setFilters(QgsMapLayerProxyModel.LineLayer)
+        self._set_layer_filters()
         self.unitNameField.setLayer(self.basalContactsLayer.currentLayer())
-        self.faultTraceLayer.setFilters(QgsMapLayerProxyModel.LineLayer)
-        self.faultTraceLayer.setAllowEmptyLayer(True)
-        self.DtmLayer.setFilters(QgsMapLayerProxyModel.RasterLayer)
-        self.DtmLayer.setAllowEmptyLayer(True)
-        self.structuralDataLayer.setFilters(QgsMapLayerProxyModel.PointLayer)
 
         self._basalContacts = None
         self._units = None
@@ -44,6 +39,27 @@ class ModellingWidget(QWidget):
         self.view = None
         self.model = None
         self.outputPath = ""
+    def _set_layer_filters(self):
+        # Set filters for the layer selection comboboxes
+        # basal contacts can be line or points
+        self.basalContactsLayer.setFilters(QgsMapLayerProxyModel.LineLayer | QgsMapLayerProxyModel.PointLayer)
+        self.basalContactsLayer.setAllowEmptyLayer(True)
+        # Structural data can only be points
+        self.structuralDataLayer.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.basalContactsLayer.setAllowEmptyLayer(True)
+        # fault traces can be lines or points
+        self.faultTraceLayer.setFilters(QgsMapLayerProxyModel.LineLayer | QgsMapLayerProxyModel.PointLayer)
+        self.faultTraceLayer.setAllowEmptyLayer(True)
+        # dtm can only be a raster
+        self.DtmLayer.setFilters(QgsMapLayerProxyModel.RasterLayer)
+        self.DtmLayer.setAllowEmptyLayer(True)
+
+        # evaluate on model layer
+        self.evaluateModelOnLayerSelector.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.evaluateModelOnLayerSelector.setAllowEmptyLayer(True)
+        # evaluate on feature layer
+        self.evaluateFeatureLayerSelector.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.evaluateFeatureLayerSelector.setAllowEmptyLayer(True)
 
     def _connectSignals(self):
         self.basalContactsLayer.layerChanged.connect(self.onBasalContactsChanged)
@@ -72,8 +88,16 @@ class ModellingWidget(QWidget):
         # self.faultCentreY.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
         # self.faultCentreZ.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
         self.addFaultElipseToMap.clicked.connect(self.drawFaultElipse)
+        self.addModelContactsToProject.clicked.connect(self.onAddModelContactsToProject)
+        self.addFaultDisplacementsToProject.clicked.connect(self.onAddFaultDisplacmentsToProject)
+        self.evaluateModelOnLayer.clicked.connect(self.onEvaluateModelOnLayer)
+        self.evaluateFeatureOnLayer.clicked.connect(self.onEvaluateFeatureOnLayer)
+        self.addMappedLithologiesToProject.clicked.connect(self.onAddModelledLithologiesToProject)
+        self.addFaultTracesToProject.clicked.connect(self.onAddFaultTracesToProject)
+        self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
 
     def onInitialiseModel(self):
+        print(self._faults)
         columnmap = {
             'unitname': self.unitNameField.currentField(),
             'faultname': self.faultNameField.currentField(),
@@ -81,8 +105,7 @@ class ModellingWidget(QWidget):
             'orientation': self.orientationField.currentField(),
             'structure_unitname': self.structuralDataUnitName.currentField(),
         }
-        try:
-            processor = QgsProcessInputData(
+        processor = QgsProcessInputData(
                 basal_contacts=self.basalContactsLayer.currentLayer(),
                 stratigraphic_column=self._units,
                 fault_trace=self.faultTraceLayer.currentLayer(),
@@ -96,7 +119,8 @@ class ModellingWidget(QWidget):
                 dip_direction=self.orientationType.currentIndex() == 1,
                 rotation=self.rotationDoubleSpinBox.value(),
             )
-            self.model = processor.get_model()
+        self.processor = processor
+        self.model = processor.get_model()
             # for feature in self.model.features:
             #     item = QListWidgetItem()
             #     item.setText(feature.name)
@@ -104,8 +128,7 @@ class ModellingWidget(QWidget):
             #         QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
             #     )
             #     self.modelList.addItem(item)
-        except Exception as e:
-            print(e)
+        
 
     def onOrientationTypeChanged(self, index):
         if index == 0:
@@ -128,14 +151,35 @@ class ModellingWidget(QWidget):
 
     def onRunModel(self):
         try:
-            print('Running model')
             self.model.update()
-            print('Model updated')
+            self._model_updated()
         except Exception as e:
             print(e)
+    def _model_updated(self):
+        self.addScalarFieldComboBox.clear()
+        self.evaluateFeatureFeatureSelector.clear()
+        for feature in self.model.features:
+            self.addScalarFieldComboBox.addItem(feature.name)
+            self.evaluateFeatureFeatureSelector.addItem(feature.name)
+        self.addScalarFieldComboBox.setCurrentIndex(0)
+        self.evaluateFeatureFeatureSelector.setCurrentIndex(0)
 
-    def linkFieldToLayer(self, field, layer):
+    def onAddModelContactsToProject(self):
         pass
+
+    def onAddFaultDisplacmentsToProject(self):
+        pass
+    def onEvaluateModelOnLayer(self):
+        pass
+    def onEvaluateFeatureOnLayer(self):
+        pass
+    def onAddModelledLithologiesToProject(self):
+        pass
+    def onAddFaultTracesToProject(self):
+        pass
+    def onAddScalarFieldToProject(self):
+        pass
+
 
     def onBasalContactsChanged(self, layer):
         self.unitNameField.setLayer(layer)
@@ -289,7 +333,6 @@ class ModellingWidget(QWidget):
             up = QPushButton("↑")
             down = QPushButton("↓")
             color_picker = QPushButton("Pick Colour")
-            print(value)
             # Set background color for the row
             background_color = value.get('color', "#ffffff")
             label.setStyleSheet(f"background-color: {background_color};")
@@ -321,8 +364,15 @@ class ModellingWidget(QWidget):
 
     def onSaveModel(self):
         fileFormat = self.fileFormatCombo.currentText()
+        
         path = self.path.text()#
         name = self.modelNameLineEdit.text()
+        if fileFormat == 'python':
+            fileFormat = 'pkl'
+            self.model.to_file(os.path.join(path, name + "." + fileFormat))
+            self.processor.to_file(os.path.join(path, name + "_processor." + fileFormat))
+            return
+
         filename = os.path.join(path, name + "." + fileFormat)
 
         self.model.save(filename=os.path.join(path, name + "." + fileFormat))

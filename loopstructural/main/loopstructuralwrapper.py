@@ -62,19 +62,41 @@ class QgsProcessInputData(ProcessInputData):
 
             if dip_direction:
                 contact_orientations['strike'] = contact_orientations['strike'] + 90
-        fault_properties=pd.DataFrame(fault_properties,columns=['fault_name','dip','displacement','major_axis','intermediate_axis','minor_axis','active','azimuth','crs'])
-
-
+        faults = []
+        for fault_name in fault_properties.keys():
+            fault = fault_properties[fault_name]
+            if fault['active']:
+                faults.append(
+                    {
+                        'fault_name': fault_name,
+                        'dip': fault['dip'],
+                        'displacement': fault['displacement'],
+                        'major_axis': fault['major_axis'],
+                        'intermediate_axis': fault['intermediate_axis'],
+                        'minor_axis': fault['minor_axis'],
+                        'centreEasting': fault['centre'].x(),
+                        'centreNorthing': fault['centre'].y(),
+                        'centreElevation': 0#if fault['centre']fault['centre'].z(),
+                        # 'active': fault['active'],
+                        # 'azimuth': fault['azimuth'],
+                        # 'crs': fault['crs'],
+                    }
+                )
+        fault_properties=pd.DataFrame(faults)
+        fault_properties = fault_properties.set_index('fault_name') 
+        
         super().__init__(
             contacts=contact_locations,
             stratigraphic_order=stratigraphic_order,
             thicknesses=thicknesses,
             fault_locations=fault_data,
             contact_orientations=contact_orientations,
+            fault_orientations=None,
             fault_properties=fault_properties,
             origin=origin,
             maximum=maximum,
+            # fault_edges=[(fault,None) for fault in fault_data['fault_name'].unique()],
         )
-
     def get_model(self):
         return GeologicalModel.from_processor(self)
+    

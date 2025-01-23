@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1752</width>
-    <height>1150</height>
+    <height>860</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,11 +19,11 @@
      <x>10</x>
      <y>10</y>
      <width>611</width>
-     <height>681</height>
+     <height>711</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -375,7 +375,7 @@
        <x>0</x>
        <y>10</y>
        <width>591</width>
-       <height>631</height>
+       <height>641</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -414,7 +414,7 @@
              <x>10</x>
              <y>20</y>
              <width>571</width>
-             <height>289</height>
+             <height>281</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -467,57 +467,6 @@
                <widget class="QLabel" name="label_18">
                 <property name="text">
                  <string>Center</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_20">
-                <property name="text">
-                 <string>Major Axis</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_21">
-                <property name="text">
-                 <string>Minor Axis</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Intermediate Axis</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="faultMajorAxisLength">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="maximum">
-                 <double>10000000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QDoubleSpinBox" name="faultMinorAxisLength">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="maximum">
-                 <double>10000000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QDoubleSpinBox" name="faultIntermediateAxisLength">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="maximum">
-                 <double>1000000.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -602,6 +551,57 @@
                  </layout>
                 </item>
                </layout>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Major Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="faultMajorAxisLength">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="maximum">
+                 <double>10000000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>Minor Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QDoubleSpinBox" name="faultMinorAxisLength">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="maximum">
+                 <double>10000000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Intermediate Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QDoubleSpinBox" name="faultIntermediateAxisLength">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="maximum">
+                 <double>1000000.000000000000000</double>
+                </property>
+               </widget>
               </item>
               <item row="6" column="0">
                <widget class="QLabel" name="faultActiveLabel">
@@ -755,6 +755,11 @@
                 </item>
                 <item>
                  <property name="text">
+                  <string>python</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>gOcad</string>
                  </property>
                 </item>
@@ -887,10 +892,10 @@
             <widget class="QWidget" name="formLayoutWidget_4">
              <property name="geometry">
               <rect>
-               <x>0</x>
+               <x>10</x>
                <y>20</y>
-               <width>571</width>
-               <height>231</height>
+               <width>551</width>
+               <height>235</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout">
@@ -922,7 +927,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QPushButton" name="addFaultDisplacementToProject">
+               <widget class="QPushButton" name="addFaultDisplacementsToProject">
                 <property name="text">
                  <string>Add to Project</string>
                 </property>
@@ -931,10 +936,10 @@
               <item row="2" column="1">
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
-                 <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox"/>
+                 <widget class="QgsMapLayerComboBox" name="evaluateModelOnLayerSelector"/>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButton">
+                 <widget class="QPushButton" name="evaluateModelOnLayer">
                   <property name="text">
                    <string>Add to map</string>
                   </property>
@@ -960,7 +965,7 @@
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QPushButton" name="pushButton_2">
+               <widget class="QPushButton" name="addMappedLithologiesToProject">
                 <property name="text">
                  <string>Add to map</string>
                 </property>
@@ -1005,7 +1010,7 @@
                    <widget class="QgsMapLayerComboBox" name="evaluateFeatureLayerSelector"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="evaluateFeatureButton">
+                   <widget class="QPushButton" name="evaluateFeatureOnLayer">
                     <property name="text">
                      <string>Add</string>
                     </property>
@@ -1016,7 +1021,7 @@
                </layout>
               </item>
               <item row="5" column="1">
-               <widget class="QPushButton" name="pushButton_3">
+               <widget class="QPushButton" name="addFaultTracesToProject">
                 <property name="text">
                  <string>Add to map</string>
                 </property>
@@ -1030,7 +1035,18 @@
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QComboBox" name="addScalarFieldComboBox"/>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QComboBox" name="addScalarFieldComboBox"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="addScalarFieldToProject">
+                  <property name="text">
+                   <string>Add to Project</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -1041,6 +1057,50 @@
        </layout>
       </item>
      </layout>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="About">
+    <attribute name="title">
+     <string>About</string>
+    </attribute>
+    <widget class="QTextEdit" name="textEdit">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>591</width>
+       <height>641</height>
+      </rect>
+     </property>
+     <property name="html">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;About LoopStructural&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;LoopStructural is an open source 3D structural geological python library developed as part of the Loop project by Lachlan Grose. This plugin provides a convenient link between QGIS datasets and the LoopStructural modelling algorithms. &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Using this plugin you can:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- Build a model from a scratch map (fault traces, contacts, structural data and a stratigraphic column&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- Define fault kinematics&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- Export models to vtk, gocad, geoh5 3D formats&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- Export the model to be loaded into a python environment&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;You cannot:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- View the model in 3D (QGIS 3D environment is not sufficient at the moment)&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;- Access all of the LoopStructural features in the Python API&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;To help support this project &lt;a href=&quot;https://github.com/Loop3D/loopstructural&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;please star the project on GitHub&lt;/span&gt;&lt;/a&gt; &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If you have any questions about building models using LoopStructural or have found a bug please &lt;a href=&quot;https://github.com/Loop3D/LoopStructural/issues&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;submit an issue&lt;/span&gt;&lt;/a&gt; on the LoopStructural github page. &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Cite LoopStructural&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Grose et al 2020&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Grose et al 2021&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
     </widget>
    </widget>
   </widget>
