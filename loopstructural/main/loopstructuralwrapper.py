@@ -82,9 +82,11 @@ class QgsProcessInputData(ProcessInputData):
                         # 'crs': fault['crs'],
                     }
                 )
-        fault_properties=pd.DataFrame(faults)
-        fault_properties = fault_properties.set_index('fault_name') 
-        
+        fault_properties = None        
+        if len(faults)>0:
+
+            fault_properties=pd.DataFrame(faults)
+            fault_properties = fault_properties.set_index('fault_name') 
         super().__init__(
             contacts=contact_locations,
             stratigraphic_order=stratigraphic_order,

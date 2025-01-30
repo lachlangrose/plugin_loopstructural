@@ -129,3 +129,4 @@ dmypy.json
 *.zip
 *.qm
 
+loopstructural/embedded_external_libs/*
