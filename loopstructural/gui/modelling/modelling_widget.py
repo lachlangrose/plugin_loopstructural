@@ -364,7 +364,7 @@ class ModellingWidget(QWidget):
 
     def onSaveModel(self):
         fileFormat = self.fileFormatCombo.currentText()
-        
+        print('saving model')
         path = self.path.text()#
         name = self.modelNameLineEdit.text()
         if fileFormat == 'python':
@@ -375,20 +375,14 @@ class ModellingWidget(QWidget):
 
         filename = os.path.join(path, name + "." + fileFormat)
 
-        self.model.save(filename=os.path.join(path, name + "." + fileFormat))
-        self.model.bounding_box.vtk().save(os.path.join(path, name + "_bounding_box." + fileFormat))
-        # if self.stratigraphicSurfacesCheckBox.isChecked():
-        #     self.model.save_surfaces(
-        #         os.path.join(path, name + "_surfaces." + fileFormat)
-        #     )
-        # if self.faultSurfacesCheckBox.isChecked():
-        #     self.model.save_faults(os.path.join(path, name + "_faults." + fileFormat))
-        # if self.blockModelCheckBox.isChecked():
-        #     self.model.save_block_model(os.path.join(path, name + "_block." + fileFormat))
-        # if self.blockModelCheckBox.isChecked():
-        #     self.model.save_block_model(os.path.join(path, name + "_block." + fileFormat))
-        # if self.
-        # pass
+        self.model.save(filename=os.path.join(path, name + "." + fileFormat),
+        block_model=self.blockModelCheckBox.isChecked(),
+        stratigraphic_surfaces=self.stratigraphicSurfacesCheckBox.isChecked(),
+        fault_surfaces=self.faultSurfacesCheckBox.isChecked(),
+        stratigraphic_data=self.stratigraphicDataCheckBox.isChecked(),
+        fault_data=self.faultDataCheckBox.isChecked(),
+        )
+        
     def onPathTextChanged(self, text):
         self.outputPath = text
     def onClickPath(self):

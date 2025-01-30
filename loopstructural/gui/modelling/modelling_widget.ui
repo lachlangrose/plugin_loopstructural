@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1752</width>
+    <width>1107</width>
     <height>860</height>
    </rect>
   </property>
@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -35,7 +35,7 @@
        <x>10</x>
        <y>10</y>
        <width>591</width>
-       <height>641</height>
+       <height>681</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -57,7 +57,7 @@
                <x>10</x>
                <y>20</y>
                <width>551</width>
-               <height>130</height>
+               <height>161</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout_2">
@@ -168,7 +168,7 @@
                <x>10</x>
                <y>20</y>
                <width>551</width>
-               <height>184</height>
+               <height>191</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout_3">
@@ -302,7 +302,7 @@
                <x>10</x>
                <y>20</y>
                <width>551</width>
-               <height>128</height>
+               <height>176</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout_4">
@@ -413,8 +413,8 @@
             <rect>
              <x>10</x>
              <y>20</y>
-             <width>571</width>
-             <height>281</height>
+             <width>679</width>
+             <height>497</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -666,7 +666,7 @@
              <x>9</x>
              <y>19</y>
              <width>571</width>
-             <height>54</height>
+             <height>90</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -733,7 +733,7 @@
              <x>10</x>
              <y>20</y>
              <width>551</width>
-             <height>203</height>
+             <height>201</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -825,7 +825,7 @@
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QCheckBox" name="StratigraphicDataCheckBox">
+               <widget class="QCheckBox" name="stratigraphicDataCheckBox">
                 <property name="text">
                  <string/>
                 </property>
@@ -840,6 +840,13 @@
               </item>
               <item row="5" column="1">
                <widget class="QLineEdit" name="modelNameLineEdit"/>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Fault Data</string>
+                </property>
+               </widget>
               </item>
               <item row="6" column="1">
                <widget class="QCheckBox" name="faultDataCheckBox">
@@ -869,13 +876,6 @@
                 </item>
                </layout>
               </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>Fault Data</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
            </layout>
@@ -894,8 +894,8 @@
               <rect>
                <x>10</x>
                <y>20</y>
-               <width>551</width>
-               <height>235</height>
+               <width>611</width>
+               <height>378</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout">
@@ -1063,7 +1063,7 @@
     <attribute name="title">
      <string>About</string>
     </attribute>
-    <widget class="QTextEdit" name="textEdit">
+    <widget class="QTextBrowser" name="textBrowser">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1092,7 +1092,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;To help support this project &lt;a href=&quot;https://github.com/Loop3D/loopstructural&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;please star the project on GitHub&lt;/span&gt;&lt;/a&gt; &lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If you have any questions about building models using LoopStructural or have found a bug please &lt;a href=&quot;https://github.com/Loop3D/LoopStructural/issues&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;submit an issue&lt;/span&gt;&lt;/a&gt; on the LoopStructural github page. &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If you have any questions about building models using LoopStructural or have found a bug please &lt;a href=&quot;https://github.com/Loop3D/LoopStructural/issues&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;submit an issue&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt; on the LoopStructural github page. &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Cite LoopStructural&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Grose et al 2020&lt;/p&gt;
@@ -1100,6 +1100,12 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextEditable|Qt::TextSelectableByMouse</set>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
