@@ -22,14 +22,6 @@ from loopstructural.__about__ import (
     __title__,
     __uri_homepage__,
 )
-try:
-    import LoopStructural
-    import pyvista
-    import geoh5py
-except:
-    import site
-    site.addsitedir(DIR_PLUGIN_ROOT / "embedded_external_libs")
-    print('using embedded libs')
 from loopstructural.gui.dlg_settings import PlgOptionsFactory
 from loopstructural.gui.modelling.modelling_widget import ModellingWidget as Modelling
 from loopstructural.toolbelt import PlgLogger
