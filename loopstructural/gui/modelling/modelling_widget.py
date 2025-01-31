@@ -24,14 +24,14 @@ from LoopStructural.utils import random_hex_colour
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
 class ModellingWidget(QWidget):
-    def __init__(self, parent: QWidget = None, mapCanvas=None):
+    def __init__(self, parent: QWidget = None, mapCanvas=None,logger=None):
         super().__init__(parent)
         uic.loadUi(os.path.join(os.path.dirname(__file__), "modelling_widget.ui"), self)
         self.mapCanvas = mapCanvas
         self.rotationDoubleSpinBox.setValue(mapCanvas.rotation())
         self._set_layer_filters()
-        self.unitNameField.setLayer(self.basalContactsLayer.currentLayer())
-
+        # self.unitNameField.setLayer(self.basalContactsLayer.currentLayer())
+        self.logger = logger 
         self._basalContacts = None
         self._units = None
         self._faults = {}
@@ -97,30 +97,35 @@ class ModellingWidget(QWidget):
         self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
 
     def onInitialiseModel(self):
-        print(self._faults)
-        columnmap = {
-            'unitname': self.unitNameField.currentField(),
-            'faultname': self.faultNameField.currentField(),
-            'dip': self.dipField.currentField(),
-            'orientation': self.orientationField.currentField(),
-            'structure_unitname': self.structuralDataUnitName.currentField(),
-        }
-        processor = QgsProcessInputData(
-                basal_contacts=self.basalContactsLayer.currentLayer(),
-                stratigraphic_column=self._units,
-                fault_trace=self.faultTraceLayer.currentLayer(),
-                fault_properties= self._faults,
-                structural_data=self.structuralDataLayer.currentLayer(),
-                dtm=self.DtmLayer.currentLayer(),
-                columnmap=columnmap,
-                roi=self.roiLayer.currentLayer(),
-                top=self.heightSpinBox.value(),
-                bottom=self.depthSpinBox.value(),
-                dip_direction=self.orientationType.currentIndex() == 1,
-                rotation=self.rotationDoubleSpinBox.value(),
-            )
-        self.processor = processor
-        self.model = processor.get_model()
+
+        try:
+            columnmap = {
+                'unitname': self.unitNameField.currentField(),
+                'faultname': self.faultNameField.currentField(),
+                'dip': self.dipField.currentField(),
+                'orientation': self.orientationField.currentField(),
+                'structure_unitname': self.structuralDataUnitName.currentField(),
+            }
+            processor = QgsProcessInputData(
+                    basal_contacts=self.basalContactsLayer.currentLayer(),
+                    stratigraphic_column=self._units,
+                    fault_trace=self.faultTraceLayer.currentLayer(),
+                    fault_properties= self._faults,
+                    structural_data=self.structuralDataLayer.currentLayer(),
+                    dtm=self.DtmLayer.currentLayer(),
+                    columnmap=columnmap,
+                    roi=self.roiLayer.currentLayer(),
+                    top=self.heightSpinBox.value(),
+                    bottom=self.depthSpinBox.value(),
+                    dip_direction=self.orientationType.currentIndex() == 1,
+                    rotation=self.rotationDoubleSpinBox.value(),
+                )
+            self.processor = processor
+            self.model = processor.get_model()
+            self.logger(message="Model initialised",log_level=1,push=True)
+        except Exception as e:
+            self.logger(message=str(e),log_level=2,
+                push=True,)
             # for feature in self.model.features:
             #     item = QListWidgetItem()
             #     item.setText(feature.name)
@@ -151,10 +156,14 @@ class ModellingWidget(QWidget):
 
     def onRunModel(self):
         try:
-            self.model.update()
+
+            self.model.update(progressbar=False)
             self._model_updated()
+            self.logger(message="Model run",log_level=1,push=True)
+
         except Exception as e:
-            print(e)
+            self.logger(message=str(e),log_level=2,
+                push=True,)
     def _model_updated(self):
         self.addScalarFieldComboBox.clear()
         self.evaluateFeatureFeatureSelector.clear()
@@ -197,7 +206,7 @@ class ModellingWidget(QWidget):
         if layer:
             field_index = layer.fields().indexFromName(field)
             for feature in layer.getFeatures():
-                unique_values.add(feature[field_index])
+                unique_values.add(str(feature[field_index]))
         colours = random_hex_colour(n=len(unique_values))
         self._units = dict(
             zip(
@@ -221,7 +230,7 @@ class ModellingWidget(QWidget):
         if name_field and layer:
             self._faults = {}
             for feature in layer.getFeatures():
-                self._faults[feature[name_field]] = {
+                self._faults[str(feature[name_field])] = {
                     'dip': feature.attributeMap().get(dip_field,0),
                     'displacement': feature.attributeMap().get(displacement_field,0),
                     'centre': feature.geometry().centroid().asPoint(),
@@ -363,25 +372,30 @@ class ModellingWidget(QWidget):
         self._initialiseStratigraphicColumn()
 
     def onSaveModel(self):
-        fileFormat = self.fileFormatCombo.currentText()
-        print('saving model')
-        path = self.path.text()#
-        name = self.modelNameLineEdit.text()
-        if fileFormat == 'python':
-            fileFormat = 'pkl'
-            self.model.to_file(os.path.join(path, name + "." + fileFormat))
-            self.processor.to_file(os.path.join(path, name + "_processor." + fileFormat))
-            return
+        try:
 
-        filename = os.path.join(path, name + "." + fileFormat)
+            fileFormat = self.fileFormatCombo.currentText()
+            path = self.path.text()#
+            name = self.modelNameLineEdit.text()
+            if fileFormat == 'python':
+                fileFormat = 'pkl'
+                self.model.to_file(os.path.join(path, name + "." + fileFormat))
+                self.processor.to_file(os.path.join(path, name + "_processor." + fileFormat))
+                return
 
-        self.model.save(filename=os.path.join(path, name + "." + fileFormat),
-        block_model=self.blockModelCheckBox.isChecked(),
-        stratigraphic_surfaces=self.stratigraphicSurfacesCheckBox.isChecked(),
-        fault_surfaces=self.faultSurfacesCheckBox.isChecked(),
-        stratigraphic_data=self.stratigraphicDataCheckBox.isChecked(),
-        fault_data=self.faultDataCheckBox.isChecked(),
-        )
+            filename = os.path.join(path, name + "." + fileFormat)
+
+            self.model.save(filename=os.path.join(path, name + "." + fileFormat),
+            block_model=self.blockModelCheckBox.isChecked(),
+            stratigraphic_surfaces=self.stratigraphicSurfacesCheckBox.isChecked(),
+            fault_surfaces=self.faultSurfacesCheckBox.isChecked(),
+            stratigraphic_data=self.stratigraphicDataCheckBox.isChecked(),
+            fault_data=self.faultDataCheckBox.isChecked(),
+            )
+            self.logger(message=f"Model saved to {path}",log_level=1,push=True)
+        except Exception as e:
+            self.logger(message=str(e),log_level=2,
+                push=True,)
         
     def onPathTextChanged(self, text):
         self.outputPath = text

@@ -113,7 +113,7 @@ class LoopstructuralPlugin:
         ## --- dock widget
         self.modelling_dockwidget = QDockWidget(self.tr("Modelling"), self.iface.mainWindow())
         self.model_setup_widget = Modelling(
-            self.iface.mainWindow(), mapCanvas=self.iface.mapCanvas()
+            self.iface.mainWindow(), mapCanvas=self.iface.mapCanvas(),logger=self.log
         )
         self.modelling_dockwidget.setWidget(self.model_setup_widget)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.modelling_dockwidget)
