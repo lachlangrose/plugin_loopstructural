@@ -43,7 +43,7 @@ def qgsLayerToDataFrame(layer, dtm) -> pd.DataFrame:
             data['X'].append(p.x())
             data['Y'].append(p.y())
             if dtm is not None:
-                 # Replace with your coordinates
+                # Replace with your coordinates
 
                 # Extract the value at the point
                 z_value = dtm.dataProvider().identify(p, QgsRaster.IdentifyFormatValue)

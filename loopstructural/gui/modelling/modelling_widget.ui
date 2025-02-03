@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1107</width>
-    <height>860</height>
+    <width>948</width>
+    <height>1263</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -35,7 +35,7 @@
        <x>10</x>
        <y>10</y>
        <width>591</width>
-       <height>681</height>
+       <height>701</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -375,7 +375,7 @@
        <x>0</x>
        <y>10</y>
        <width>591</width>
-       <height>641</height>
+       <height>651</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -386,16 +386,34 @@
           <property name="title">
            <string>Stratigraphic Column</string>
           </property>
-          <widget class="QWidget" name="gridLayoutWidget">
+          <widget class="QWidget" name="verticalLayoutWidget_3">
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>20</y>
+             <y>30</y>
              <width>581</width>
              <height>281</height>
             </rect>
            </property>
-           <layout class="QGridLayout" name="stratigraphicColumnContainer"/>
+           <layout class="QVBoxLayout" name="verticalLayout_19">
+            <item>
+             <layout class="QGridLayout" name="stratigraphicColumnContainer"/>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="saveThicknessOrderButton">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save the stratigraphic order and thickness as new columns in the contacts basal contacts layer. Note this will overwrite any existing data in the &amp;quot;LS_order' and 'LS_thickness' columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Save To Contacts</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -413,8 +431,8 @@
             <rect>
              <x>10</x>
              <y>20</y>
-             <width>679</width>
-             <height>497</height>
+             <width>571</width>
+             <height>291</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -620,15 +638,11 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <item>
-               <widget class="QPushButton" name="addFaultElipseToMap">
-                <property name="text">
-                 <string>Add Elipse to Map</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="addFaultElipseToMap">
+              <property name="text">
+               <string>Add Elipse to Map</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

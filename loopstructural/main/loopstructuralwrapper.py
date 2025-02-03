@@ -3,6 +3,7 @@ from LoopStructural.modelling.input import ProcessInputData
 from LoopStructural.utils import EuclideanTransformation
 from .vectorLayerWrapper import qgsLayerToDataFrame
 import pandas as pd
+import numpy as np
 
 class QgsProcessInputData(ProcessInputData):
     def __init__(
@@ -41,15 +42,17 @@ class QgsProcessInputData(ProcessInputData):
 
         origin = (minx, miny, bottom)
         maximum = (maxx, maxy, top)
-        if contact_locations is not None:
+        if contact_locations is not None and 'unitname' in columnmap.keys():
             contact_locations = contact_locations.rename(columns={columnmap['unitname']: 'name'})[
                 ['X', 'Y', 'Z', 'name']
             ]
-        if fault_data is not None:
+        if fault_data is not None and 'faultname' in columnmap.keys():
             fault_data = fault_data.rename(columns={columnmap['faultname']: 'fault_name'})[
                 ['X', 'Y', 'Z', 'fault_name']
             ]
-        if contact_orientations is not None:
+            if np.all(fault_data['fault_name'].isna()):
+                raise ValueError('Fault column name is all None. Check the column name')
+        if contact_orientations is not None and 'dip' in columnmap.keys() and 'orientation' in columnmap.keys() and 'structure_unitname' in columnmap.keys():
             contact_orientations = contact_orientations.rename(
                 columns={
                     columnmap['structure_unitname']: 'name',
@@ -59,7 +62,12 @@ class QgsProcessInputData(ProcessInputData):
             )[['X', 'Y', 'Z', 'dip', 'strike', 'name']]
             contact_orientations['dip'] = contact_orientations['dip'].astype(float)
             contact_orientations['strike'] = contact_orientations['strike'].astype(float)
-
+            if np.all(contact_orientations['name'].isna()):
+                raise ValueError('Unit column name is all None. Check the column name')
+            if np.all(contact_orientations['dip'].isna()):
+                raise ValueError('Dip column name is all None. Check the column name')
+            if np.all(contact_orientations['strike'].isna()):
+                raise ValueError('Strike column name is all None. Check the column name')
             if dip_direction:
                 contact_orientations['strike'] = contact_orientations['strike'] + 90
         faults = []
@@ -76,17 +84,17 @@ class QgsProcessInputData(ProcessInputData):
                         'minor_axis': fault['minor_axis'],
                         'centreEasting': fault['centre'].x(),
                         'centreNorthing': fault['centre'].y(),
-                        'centreElevation': 0#if fault['centre']fault['centre'].z(),
+                        'centreElevation': 0  # if fault['centre']fault['centre'].z(),
                         # 'active': fault['active'],
                         # 'azimuth': fault['azimuth'],
                         # 'crs': fault['crs'],
                     }
                 )
-        fault_properties = None        
-        if len(faults)>0:
+        fault_properties = None
+        if len(faults) > 0:
 
-            fault_properties=pd.DataFrame(faults)
-            fault_properties = fault_properties.set_index('fault_name') 
+            fault_properties = pd.DataFrame(faults)
+            fault_properties = fault_properties.set_index('fault_name')
         super().__init__(
             contacts=contact_locations,
             stratigraphic_order=stratigraphic_order,
@@ -99,6 +107,6 @@ class QgsProcessInputData(ProcessInputData):
             maximum=maximum,
             # fault_edges=[(fault,None) for fault in fault_data['fault_name'].unique()],
         )
+
     def get_model(self):
         return GeologicalModel.from_processor(self)
-    

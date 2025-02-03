@@ -12,7 +12,8 @@ from qgis.PyQt.QtWidgets import (
     QDoubleSpinBox,
     QSpinBox,
     QFileDialog,
-    QPushButton,QColorDialog
+    QPushButton,
+    QColorDialog,
 )
 from qgis.core import QgsProject, QgsEllipse, QgsPoint, QgsVectorLayer, QgsFeature
 import random
@@ -20,18 +21,20 @@ import os
 from ...main import QgsProcessInputData
 from ...main.geometry.calculateLineAzimuth import calculateAverageAzimuth
 from LoopStructural.utils import random_hex_colour
+from qgis.core import QgsField
+from PyQt5.QtCore import QVariant
 
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
 class ModellingWidget(QWidget):
-    def __init__(self, parent: QWidget = None, mapCanvas=None,logger=None):
+    def __init__(self, parent: QWidget = None, mapCanvas=None, logger=None):
         super().__init__(parent)
         uic.loadUi(os.path.join(os.path.dirname(__file__), "modelling_widget.ui"), self)
         self.mapCanvas = mapCanvas
         self.rotationDoubleSpinBox.setValue(mapCanvas.rotation())
         self._set_layer_filters()
         # self.unitNameField.setLayer(self.basalContactsLayer.currentLayer())
-        self.logger = logger 
+        self.logger = logger
         self._basalContacts = None
         self._units = None
         self._faults = {}
@@ -39,16 +42,21 @@ class ModellingWidget(QWidget):
         self.view = None
         self.model = None
         self.outputPath = ""
+
     def _set_layer_filters(self):
         # Set filters for the layer selection comboboxes
         # basal contacts can be line or points
-        self.basalContactsLayer.setFilters(QgsMapLayerProxyModel.LineLayer | QgsMapLayerProxyModel.PointLayer)
+        self.basalContactsLayer.setFilters(
+            QgsMapLayerProxyModel.LineLayer | QgsMapLayerProxyModel.PointLayer
+        )
         self.basalContactsLayer.setAllowEmptyLayer(True)
         # Structural data can only be points
         self.structuralDataLayer.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.basalContactsLayer.setAllowEmptyLayer(True)
         # fault traces can be lines or points
-        self.faultTraceLayer.setFilters(QgsMapLayerProxyModel.LineLayer | QgsMapLayerProxyModel.PointLayer)
+        self.faultTraceLayer.setFilters(
+            QgsMapLayerProxyModel.LineLayer | QgsMapLayerProxyModel.PointLayer
+        )
         self.faultTraceLayer.setAllowEmptyLayer(True)
         # dtm can only be a raster
         self.DtmLayer.setFilters(QgsMapLayerProxyModel.RasterLayer)
@@ -78,12 +86,24 @@ class ModellingWidget(QWidget):
         self.saveButton.clicked.connect(self.onSaveModel)
         self.path.textChanged.connect(self.onPathTextChanged)
         self.faultSelection.currentIndexChanged.connect(self.onSelectedFaultChanged)
-        self.faultDipValue.valueChanged.connect(lambda value: self.updateFaultProperty('dip', value))
-        self.faultDisplacementValue.valueChanged.connect(lambda value: self.updateFaultProperty('displacement', value))
-        self.faultActiveCheckBox.stateChanged.connect(lambda value: self.updateFaultProperty('active', value))
-        self.faultMajorAxisLength.valueChanged.connect(lambda value: self.updateFaultProperty('major_axis', value))
-        self.faultIntermediateAxisLength.valueChanged.connect(lambda value: self.updateFaultProperty('intermediate_axis', value))
-        self.faultMinorAxisLength.valueChanged.connect(lambda value: self.updateFaultProperty('minor_axis', value))
+        self.faultDipValue.valueChanged.connect(
+            lambda value: self.updateFaultProperty('dip', value)
+        )
+        self.faultDisplacementValue.valueChanged.connect(
+            lambda value: self.updateFaultProperty('displacement', value)
+        )
+        self.faultActiveCheckBox.stateChanged.connect(
+            lambda value: self.updateFaultProperty('active', value)
+        )
+        self.faultMajorAxisLength.valueChanged.connect(
+            lambda value: self.updateFaultProperty('major_axis', value)
+        )
+        self.faultIntermediateAxisLength.valueChanged.connect(
+            lambda value: self.updateFaultProperty('intermediate_axis', value)
+        )
+        self.faultMinorAxisLength.valueChanged.connect(
+            lambda value: self.updateFaultProperty('minor_axis', value)
+        )
         # self.faultCentreX.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
         # self.faultCentreY.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
         # self.faultCentreZ.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
@@ -95,45 +115,41 @@ class ModellingWidget(QWidget):
         self.addMappedLithologiesToProject.clicked.connect(self.onAddModelledLithologiesToProject)
         self.addFaultTracesToProject.clicked.connect(self.onAddFaultTracesToProject)
         self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
-
+        self.saveThicknessOrderButton.clicked.connect(self.saveThicknessOrder)
     def onInitialiseModel(self):
 
-        try:
-            columnmap = {
-                'unitname': self.unitNameField.currentField(),
-                'faultname': self.faultNameField.currentField(),
-                'dip': self.dipField.currentField(),
-                'orientation': self.orientationField.currentField(),
-                'structure_unitname': self.structuralDataUnitName.currentField(),
-            }
-            processor = QgsProcessInputData(
-                    basal_contacts=self.basalContactsLayer.currentLayer(),
-                    stratigraphic_column=self._units,
-                    fault_trace=self.faultTraceLayer.currentLayer(),
-                    fault_properties= self._faults,
-                    structural_data=self.structuralDataLayer.currentLayer(),
-                    dtm=self.DtmLayer.currentLayer(),
-                    columnmap=columnmap,
-                    roi=self.roiLayer.currentLayer(),
-                    top=self.heightSpinBox.value(),
-                    bottom=self.depthSpinBox.value(),
-                    dip_direction=self.orientationType.currentIndex() == 1,
-                    rotation=self.rotationDoubleSpinBox.value(),
-                )
-            self.processor = processor
-            self.model = processor.get_model()
-            self.logger(message="Model initialised",log_level=1,push=True)
-        except Exception as e:
-            self.logger(message=str(e),log_level=2,
-                push=True,)
-            # for feature in self.model.features:
-            #     item = QListWidgetItem()
-            #     item.setText(feature.name)
-            #     item.setBackground(
-            #         QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-            #     )
-            #     self.modelList.addItem(item)
-        
+        columnmap = {
+            'unitname': self.unitNameField.currentField(),
+            'faultname': self.faultNameField.currentField(),
+            'dip': self.dipField.currentField(),
+            'orientation': self.orientationField.currentField(),
+            'structure_unitname': self.structuralDataUnitName.currentField(),
+        }
+        processor = QgsProcessInputData(
+            basal_contacts=self.basalContactsLayer.currentLayer(),
+            stratigraphic_column=self._units,
+            fault_trace=self.faultTraceLayer.currentLayer(),
+            fault_properties=self._faults,
+            structural_data=self.structuralDataLayer.currentLayer(),
+            dtm=self.DtmLayer.currentLayer(),
+            columnmap=columnmap,
+            roi=self.roiLayer.currentLayer(),
+            top=self.heightSpinBox.value(),
+            bottom=self.depthSpinBox.value(),
+            dip_direction=self.orientationType.currentIndex() == 1,
+            rotation=self.rotationDoubleSpinBox.value(),
+        )
+        self.processor = processor
+        self.model = processor.get_model()
+        self.logger(message="Model initialised", log_level=1, push=True)
+
+        # for feature in self.model.features:
+        #     item = QListWidgetItem()
+        #     item.setText(feature.name)
+        #     item.setBackground(
+        #         QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        #     )
+        #     self.modelList.addItem(item)
 
     def onOrientationTypeChanged(self, index):
         if index == 0:
@@ -159,11 +175,15 @@ class ModellingWidget(QWidget):
 
             self.model.update(progressbar=False)
             self._model_updated()
-            self.logger(message="Model run",log_level=1,push=True)
+            self.logger(message="Model run", log_level=1, push=True)
 
         except Exception as e:
-            self.logger(message=str(e),log_level=2,
-                push=True,)
+            self.logger(
+                message=str(e),
+                log_level=2,
+                push=True,
+            )
+
     def _model_updated(self):
         self.addScalarFieldComboBox.clear()
         self.evaluateFeatureFeatureSelector.clear()
@@ -178,17 +198,21 @@ class ModellingWidget(QWidget):
 
     def onAddFaultDisplacmentsToProject(self):
         pass
+
     def onEvaluateModelOnLayer(self):
         pass
+
     def onEvaluateFeatureOnLayer(self):
         pass
+
     def onAddModelledLithologiesToProject(self):
         pass
+
     def onAddFaultTracesToProject(self):
         pass
+
     def onAddScalarFieldToProject(self):
         pass
-
 
     def onBasalContactsChanged(self, layer):
         self.unitNameField.setLayer(layer)
@@ -197,9 +221,10 @@ class ModellingWidget(QWidget):
         self.faultNameField.setLayer(layer)
         self.faultDipField.setLayer(layer)
         self.faultDisplacementField.setLayer(layer)
-        self._faults={} #reset faults
+        self._faults = {}  # reset faults
         self.onSelectedFaultChanged(-1)
         self.initFaultSelector()
+
     def onUnitFieldChanged(self, field):
         unique_values = set()
         layer = self.unitNameField.layer()
@@ -211,7 +236,10 @@ class ModellingWidget(QWidget):
         self._units = dict(
             zip(
                 list(unique_values),
-                [{'thickness': 10.0, 'order': i,'name':u,'color':colours[i]} for i,u in enumerate(unique_values)],
+                [
+                    {'thickness': 10.0, 'order': i, 'name': u, 'color': colours[i]}
+                    for i, u in enumerate(unique_values)
+                ],
             )
         )
         self._initialiseStratigraphicColumn()
@@ -222,6 +250,7 @@ class ModellingWidget(QWidget):
         if self._faults:
             faults = list(self._faults.keys())
             self.faultSelection.addItems(faults)
+
     def onFaultFieldChanged(self, field):
         name_field = self.faultNameField.currentField()
         dip_field = self.faultDipField.currentField()
@@ -231,19 +260,18 @@ class ModellingWidget(QWidget):
             self._faults = {}
             for feature in layer.getFeatures():
                 self._faults[str(feature[name_field])] = {
-                    'dip': feature.attributeMap().get(dip_field,0),
-                    'displacement': feature.attributeMap().get(displacement_field,0),
+                    'dip': feature.attributeMap().get(dip_field, 0),
+                    'displacement': feature.attributeMap().get(displacement_field, 0),
                     'centre': feature.geometry().centroid().asPoint(),
                     'major_axis': feature.geometry().length(),
-                    'intermediate_axis':feature.geometry().length(),
-                    'minor_axis':feature.geometry().length()/3,
+                    'intermediate_axis': feature.geometry().length(),
+                    'minor_axis': feature.geometry().length() / 3,
                     'active': True,
-                    "azimuth":calculateAverageAzimuth(feature.geometry()),
-                    "crs":layer.crs().authid()
-
-
+                    "azimuth": calculateAverageAzimuth(feature.geometry()),
+                    "crs": layer.crs().authid(),
                 }
         self.initFaultSelector()
+
     def onSelectedFaultChanged(self, index):
         if index >= 0:
             fault = self.faultSelection.currentText()
@@ -257,6 +285,7 @@ class ModellingWidget(QWidget):
             self.faultCentreY.setValue(self._faults[fault]['centre'].y())
             # self.faultCentreZ.setValue(self._faults[fault]['centre'].z())
             self._onActiveFaultChanged(self._faults[fault]['active'])
+
     def resetFaultField(self):
         self.faultDipValue.setValue(0)
         self.faultDisplacementValue.setValue(0)
@@ -268,6 +297,7 @@ class ModellingWidget(QWidget):
         self.faultCentreY.setValue(0)
         # self.faultCentreZ.setValue(self._faults[fault]['centre'].z())
         self._onActiveFaultChanged(False)
+
     def _onActiveFaultChanged(self, value):
         self.faultDipValue.setEnabled(value)
         self.faultDisplacementValue.setEnabled(value)
@@ -277,14 +307,15 @@ class ModellingWidget(QWidget):
         self.faultCentreX.setEnabled(value)
         self.faultCentreY.setEnabled(value)
         # self.faultCentreZ.setEnabled(value)
-            
 
     def updateFaultProperty(self, prop, value):
         fault = self.faultSelection.currentText()
+        if fault not in self._faults:
+            return
         self._faults[fault][prop] = value
         if prop == 'active':
             self._onActiveFaultChanged(value)
-        
+
     def drawFaultElipse(self):
         fault = self.faultSelection.currentText()
         if fault:
@@ -296,10 +327,7 @@ class ModellingWidget(QWidget):
             crs = self._faults[fault].get('crs', 'EPSG:4326')
             # Create an ellipsoid centered at the fault center
             ellipsoid = QgsEllipse(
-            QgsPoint(centre.x(), centre.y()),
-            major_axis / 2,
-            minor_axis / 2,
-            azimuth
+                QgsPoint(centre.x(), centre.y()), major_axis / 2, minor_axis / 2, azimuth
             )
 
             # Add the ellipsoid to the map canvas
@@ -314,6 +342,7 @@ class ModellingWidget(QWidget):
     def _getSortedStratigraphicColumn(self):
 
         return sorted(self._units.items(), key=lambda x: x[1]['order'])
+
     def _initialiseStratigraphicColumn(self):
         while self.stratigraphicColumnContainer.count():
             child = self.stratigraphicColumnContainer.takeAt(0)
@@ -326,13 +355,16 @@ class ModellingWidget(QWidget):
         # )
         def create_lambda(i, direction):
             return lambda: self.onOrderChanged(i, i + direction)
+
         def create_color_picker(unit):
             def pick_color():
                 color = QColorDialog.getColor()
                 if color.isValid():
                     self._units[unit]['color'] = color.name()
                     self._initialiseStratigraphicColumn()
+
             return pick_color
+
         for i, (unit, value) in enumerate(self._getSortedStratigraphicColumn()):
             label = QLabel(unit)
             spin_box = QDoubleSpinBox(maximum=10000, minimum=0)
@@ -359,7 +391,8 @@ class ModellingWidget(QWidget):
             up.clicked.connect(create_lambda(i, -1))
             down.clicked.connect(create_lambda(i, 1))
             color_picker.clicked.connect(create_color_picker(unit))
-    def onOrderChanged(self, old_index,new_index):
+
+    def onOrderChanged(self, old_index, new_index):
         if new_index < 0 or new_index >= len(self._units):
             return
         units = dict(self._units)  # update a copy
@@ -375,7 +408,7 @@ class ModellingWidget(QWidget):
         try:
 
             fileFormat = self.fileFormatCombo.currentText()
-            path = self.path.text()#
+            path = self.path.text()  #
             name = self.modelNameLineEdit.text()
             if fileFormat == 'python':
                 fileFormat = 'pkl'
@@ -385,20 +418,45 @@ class ModellingWidget(QWidget):
 
             filename = os.path.join(path, name + "." + fileFormat)
 
-            self.model.save(filename=os.path.join(path, name + "." + fileFormat),
-            block_model=self.blockModelCheckBox.isChecked(),
-            stratigraphic_surfaces=self.stratigraphicSurfacesCheckBox.isChecked(),
-            fault_surfaces=self.faultSurfacesCheckBox.isChecked(),
-            stratigraphic_data=self.stratigraphicDataCheckBox.isChecked(),
-            fault_data=self.faultDataCheckBox.isChecked(),
+            self.model.save(
+                filename=os.path.join(path, name + "." + fileFormat),
+                block_model=self.blockModelCheckBox.isChecked(),
+                stratigraphic_surfaces=self.stratigraphicSurfacesCheckBox.isChecked(),
+                fault_surfaces=self.faultSurfacesCheckBox.isChecked(),
+                stratigraphic_data=self.stratigraphicDataCheckBox.isChecked(),
+                fault_data=self.faultDataCheckBox.isChecked(),
             )
-            self.logger(message=f"Model saved to {path}",log_level=1,push=True)
+            self.logger(message=f"Model saved to {path}", log_level=1, push=True)
         except Exception as e:
-            self.logger(message=str(e),log_level=2,
-                push=True,)
+            self.logger(
+                message=str(e),
+                log_level=2,
+                push=True,
+            )
+    def saveThicknessOrder(self):
+        layer = self.basalContactsLayer.currentLayer()
+        layer.startEditing()
+        field_names = ["LS_thickness", "LS_order"]
+        for field_name in field_names:
+
+            if field_name not in [field.name() for field in layer.fields()]:
+                layer.dataProvider().addAttributes([QgsField(field_name, QVariant.Double)])
+                layer.updateFields()
         
+        for unit, value in self._units.items():
+            for feature in layer.getFeatures():
+                if feature.attributeMap().get(self.unitNameField.currentField()) == unit:
+                    feature[field_names[0]] = value['thickness']
+                    feature[field_names[1]] = value['order']
+
+                    layer.updateFeature(feature)
+        layer.commitChanges()
+        layer.updateFields()
+        self.logger(message=f"Thickness and order saved to {layer.name()}", log_level=1, push=True)
+                
     def onPathTextChanged(self, text):
         self.outputPath = text
+
     def onClickPath(self):
         self.outputPath = QFileDialog.getExistingDirectory(None, "Select output path for model")
 
