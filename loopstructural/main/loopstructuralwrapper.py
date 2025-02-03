@@ -5,6 +5,7 @@ from .vectorLayerWrapper import qgsLayerToDataFrame
 import pandas as pd
 import numpy as np
 
+
 class QgsProcessInputData(ProcessInputData):
     def __init__(
         self,
@@ -42,17 +43,22 @@ class QgsProcessInputData(ProcessInputData):
 
         origin = (minx, miny, bottom)
         maximum = (maxx, maxy, top)
-        if contact_locations is not None and 'unitname' in columnmap.keys():
+        if contact_locations is not None and columnmap['unitname'] in contact_locations:
             contact_locations = contact_locations.rename(columns={columnmap['unitname']: 'name'})[
                 ['X', 'Y', 'Z', 'name']
             ]
-        if fault_data is not None and 'faultname' in columnmap.keys():
+        if fault_data is not None and columnmap['faultname'] in fault_data:
             fault_data = fault_data.rename(columns={columnmap['faultname']: 'fault_name'})[
                 ['X', 'Y', 'Z', 'fault_name']
             ]
             if np.all(fault_data['fault_name'].isna()):
                 raise ValueError('Fault column name is all None. Check the column name')
-        if contact_orientations is not None and 'dip' in columnmap.keys() and 'orientation' in columnmap.keys() and 'structure_unitname' in columnmap.keys():
+        if (
+            contact_orientations is not None
+            and columnmap['structure_unitname'] in contact_orientations
+            and columnmap['dip'] in contact_orientations
+            and columnmap['orientation'] in contact_orientations
+        ):
             contact_orientations = contact_orientations.rename(
                 columns={
                     columnmap['structure_unitname']: 'name',

@@ -116,6 +116,7 @@ class ModellingWidget(QWidget):
         self.addFaultTracesToProject.clicked.connect(self.onAddFaultTracesToProject)
         self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
         self.saveThicknessOrderButton.clicked.connect(self.saveThicknessOrder)
+
     def onInitialiseModel(self):
 
         columnmap = {
@@ -433,6 +434,7 @@ class ModellingWidget(QWidget):
                 log_level=2,
                 push=True,
             )
+
     def saveThicknessOrder(self):
         layer = self.basalContactsLayer.currentLayer()
         layer.startEditing()
@@ -442,7 +444,7 @@ class ModellingWidget(QWidget):
             if field_name not in [field.name() for field in layer.fields()]:
                 layer.dataProvider().addAttributes([QgsField(field_name, QVariant.Double)])
                 layer.updateFields()
-        
+
         for unit, value in self._units.items():
             for feature in layer.getFeatures():
                 if feature.attributeMap().get(self.unitNameField.currentField()) == unit:
@@ -453,7 +455,7 @@ class ModellingWidget(QWidget):
         layer.commitChanges()
         layer.updateFields()
         self.logger(message=f"Thickness and order saved to {layer.name()}", log_level=1, push=True)
-                
+
     def onPathTextChanged(self, text):
         self.outputPath = text
 
