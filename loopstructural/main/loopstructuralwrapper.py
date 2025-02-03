@@ -47,12 +47,17 @@ class QgsProcessInputData(ProcessInputData):
             contact_locations = contact_locations.rename(columns={columnmap['unitname']: 'name'})[
                 ['X', 'Y', 'Z', 'name']
             ]
+        else:
+            contact_locations = None
         if fault_data is not None and columnmap['faultname'] in fault_data:
             fault_data = fault_data.rename(columns={columnmap['faultname']: 'fault_name'})[
                 ['X', 'Y', 'Z', 'fault_name']
             ]
             if np.all(fault_data['fault_name'].isna()):
                 raise ValueError('Fault column name is all None. Check the column name')
+        else:
+            fault_data = None
+
         if (
             contact_orientations is not None
             and columnmap['structure_unitname'] in contact_orientations
@@ -76,6 +81,8 @@ class QgsProcessInputData(ProcessInputData):
                 raise ValueError('Strike column name is all None. Check the column name')
             if dip_direction:
                 contact_orientations['strike'] = contact_orientations['strike'] + 90
+        else:
+            contact_orientations = None
         faults = []
         for fault_name in fault_properties.keys():
             fault = fault_properties[fault_name]

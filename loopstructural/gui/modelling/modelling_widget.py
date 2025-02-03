@@ -228,17 +228,37 @@ class ModellingWidget(QWidget):
 
     def onUnitFieldChanged(self, field):
         unique_values = set()
+        attributes = {}
         layer = self.unitNameField.layer()
         if layer:
+            fields = {}
+            fields['unitname'] = layer.fields().indexFromName(field)
+            if 'LS_thickness' in [field.name() for field in layer.fields()]:
+                fields['thickness'] = layer.fields().indexFromName('LS_thickness')
+            if 'LS_order' in [field.name() for field in layer.fields()]:
+                fields['order'] = layer.fields().indexFromName('LS_order')
+            if 'LS_colour' in [field.name() for field in layer.fields()]:
+                fields['colour'] = layer.fields().indexFromName('LS_colour')
             field_index = layer.fields().indexFromName(field)
+
             for feature in layer.getFeatures():
                 unique_values.add(str(feature[field_index]))
+                attributes[str(feature[field_index])] = {}
+                for k in fields:
+                    attributes[str(feature[field_index])][k] = feature[fields[k]]
         colours = random_hex_colour(n=len(unique_values))
         self._units = dict(
             zip(
                 list(unique_values),
                 [
-                    {'thickness': 10.0, 'order': i, 'name': u, 'color': colours[i]}
+                    {
+                        'thickness': attributes[u]['thickness']
+                        if 'thickness' in attributes[u]
+                        else 10.0,
+                        'order': attributes[u]['order'] if 'order' in attributes[u] else i,
+                        'name': u,
+                        'colour': attributes[u]['colour'] if 'colour' in attributes[u] else colours[i],
+                    }
                     for i, u in enumerate(unique_values)
                 ],
             )
@@ -361,7 +381,7 @@ class ModellingWidget(QWidget):
             def pick_color():
                 color = QColorDialog.getColor()
                 if color.isValid():
-                    self._units[unit]['color'] = color.name()
+                    self._units[unit]['colour'] = color.name()
                     self._initialiseStratigraphicColumn()
 
             return pick_color
@@ -376,7 +396,7 @@ class ModellingWidget(QWidget):
             down = QPushButton("↓")
             color_picker = QPushButton("Pick Colour")
             # Set background color for the row
-            background_color = value.get('color', "#ffffff")
+            background_color = value.get('colour', "#ffffff")
             label.setStyleSheet(f"background-color: {background_color};")
             spin_box.setStyleSheet(f"background-color: {background_color};")
             order.setStyleSheet(f"background-color: {background_color};")
@@ -438,7 +458,7 @@ class ModellingWidget(QWidget):
     def saveThicknessOrder(self):
         layer = self.basalContactsLayer.currentLayer()
         layer.startEditing()
-        field_names = ["LS_thickness", "LS_order"]
+        field_names = ["LS_thickness", "LS_order","LS_colour"]
         for field_name in field_names:
 
             if field_name not in [field.name() for field in layer.fields()]:
@@ -450,11 +470,11 @@ class ModellingWidget(QWidget):
                 if feature.attributeMap().get(self.unitNameField.currentField()) == unit:
                     feature[field_names[0]] = value['thickness']
                     feature[field_names[1]] = value['order']
-
+                    feature[field_names[2]] = value['colour']
                     layer.updateFeature(feature)
         layer.commitChanges()
         layer.updateFields()
-        self.logger(message=f"Thickness and order saved to {layer.name()}", log_level=1, push=True)
+        self.logger(message=f"Thickness, colour and order saved to {layer.name()}", log_level=1, push=True)
 
     def onPathTextChanged(self, text):
         self.outputPath = text
