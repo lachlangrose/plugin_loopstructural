@@ -233,19 +233,20 @@ class ModellingWidget(QWidget):
         if layer:
             fields = {}
             fields['unitname'] = layer.fields().indexFromName(field)
-            if 'LS_thickness' in [field.name() for field in layer.fields()]:
-                fields['thickness'] = layer.fields().indexFromName('LS_thickness')
-            if 'LS_order' in [field.name() for field in layer.fields()]:
-                fields['order'] = layer.fields().indexFromName('LS_order')
-            if 'LS_colour' in [field.name() for field in layer.fields()]:
-                fields['colour'] = layer.fields().indexFromName('LS_colour')
+            if '_ls_th' in [field.name() for field in layer.fields()]:
+                fields['thickness'] = layer.fields().indexFromName('_ls_th')
+            if '_ls_or' in [field.name() for field in layer.fields()]:
+                fields['order'] = layer.fields().indexFromName('_ls_or')
+            if '_ls_col' in [field.name() for field in layer.fields()]:
+                fields['colour'] = layer.fields().indexFromName('_ls_col')
             field_index = layer.fields().indexFromName(field)
 
             for feature in layer.getFeatures():
                 unique_values.add(str(feature[field_index]))
                 attributes[str(feature[field_index])] = {}
                 for k in fields:
-                    attributes[str(feature[field_index])][k] = feature[fields[k]]
+                    if feature[fields[k]] != None:
+                        attributes[str(feature[field_index])][k] = feature[fields[k]]
         colours = random_hex_colour(n=len(unique_values))
         self._units = dict(
             zip(
@@ -255,9 +256,9 @@ class ModellingWidget(QWidget):
                         'thickness': attributes[u]['thickness']
                         if 'thickness' in attributes[u]
                         else 10.0,
-                        'order': attributes[u]['order'] if 'order' in attributes[u] else i,
+                        'order': int(attributes[u]['order']) if 'order' in attributes[u] else i,
                         'name': u,
-                        'colour': attributes[u]['colour'] if 'colour' in attributes[u] else colours[i],
+                        'colour': str(attributes[u]['colour']) if 'colour' in attributes[u] else colours[i],
                     }
                     for i, u in enumerate(unique_values)
                 ],
@@ -412,7 +413,7 @@ class ModellingWidget(QWidget):
             up.clicked.connect(create_lambda(i, -1))
             down.clicked.connect(create_lambda(i, 1))
             color_picker.clicked.connect(create_color_picker(unit))
-
+            spin_box.valueChanged.connect(lambda value, unit=unit: self.onThicknessChanged(unit, value))
     def onOrderChanged(self, old_index, new_index):
         if new_index < 0 or new_index >= len(self._units):
             return
@@ -424,6 +425,9 @@ class ModellingWidget(QWidget):
                 units[unit]['order'] = old_index
         self._units = units  # set to copy
         self._initialiseStratigraphicColumn()
+    def onThicknessChanged(self, unit, value):
+        self._units[unit]['thickness'] = value
+    
 
     def onSaveModel(self):
         try:
@@ -458,13 +462,13 @@ class ModellingWidget(QWidget):
     def saveThicknessOrder(self):
         layer = self.basalContactsLayer.currentLayer()
         layer.startEditing()
-        field_names = ["LS_thickness", "LS_order","LS_colour"]
-        for field_name in field_names:
+        field_names = ["_ls_th", "_ls_or","_ls_col"]
+        field_types = [QVariant.Double, QVariant.Int, QVariant.String]
+        for field_name, field_type in zip(field_names, field_types):
 
             if field_name not in [field.name() for field in layer.fields()]:
-                layer.dataProvider().addAttributes([QgsField(field_name, QVariant.Double)])
+                layer.dataProvider().addAttributes([QgsField(field_name, field_type)])
                 layer.updateFields()
-
         for unit, value in self._units.items():
             for feature in layer.getFeatures():
                 if feature.attributeMap().get(self.unitNameField.currentField()) == unit:
