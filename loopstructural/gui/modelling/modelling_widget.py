@@ -14,16 +14,20 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
     QPushButton,
     QColorDialog,
+    QCheckBox,
+    QComboBox,
 )
 from qgis.core import QgsProject, QgsEllipse, QgsPoint, QgsVectorLayer, QgsFeature
 import random
 import os
 from ...main import QgsProcessInputData
 from ...main.geometry.calculateLineAzimuth import calculateAverageAzimuth
+from ...main.rasterFromModel import callableToRaster
 from LoopStructural.utils import random_hex_colour
 from qgis.core import QgsField
 from PyQt5.QtCore import QVariant
 
+# from .feature_widget import FeatureWidget
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
 class ModellingWidget(QWidget):
@@ -42,6 +46,7 @@ class ModellingWidget(QWidget):
         self.view = None
         self.model = None
         self.outputPath = ""
+        self.activeFeature = None
 
     def _set_layer_filters(self):
         # Set filters for the layer selection comboboxes
@@ -117,6 +122,34 @@ class ModellingWidget(QWidget):
         self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
         self.saveThicknessOrderButton.clicked.connect(self.saveThicknessOrder)
 
+    def onModelListItemClicked(self, feature):
+        self.activeFeature = self.model[feature.text()]
+        self.numberOfElementsSpinBox.setValue(
+            self.activeFeature.builder.build_arguments['nelements']
+        )
+        self.numberOfElementsSpinBox.valueChanged.connect(
+            lambda nelements: self.activeFeature.builder.update_build_arguments(
+                {'nelements': nelements}
+            )
+        )
+        self.regularisationSpin.setValue(
+            self.activeFeature.builder.build_arguments['regularisation']
+        )
+        self.regularisationSpin.valueChanged.connect(
+            lambda regularisation: self.activeFeature.builder.update_builupdate_build_argumentsd_args(
+                {'regularisation': regularisation}
+            )
+        )
+        self.npwSpin.setValue(self.activeFeature.builder.build_arguments['npw'])
+        self.npwSpin.valueChanged.connect(
+            lambda npw: self.activeFeature.builder.update_build_arguments({'npw': npw})
+        )
+        self.cpwSpin.setValue(self.activeFeature.builder.build_arguments['cpw'])
+        self.cpwSpin.valueChanged.connect(
+            lambda cpw: self.activeFeature.builder.update_build_arguments({'cpw': cpw})
+        )
+        # self.updateButton.clicked.connect(lambda : feature.builder.update())
+
     def onInitialiseModel(self):
 
         columnmap = {
@@ -143,14 +176,16 @@ class ModellingWidget(QWidget):
         self.processor = processor
         self.model = processor.get_model()
         self.logger(message="Model initialised", log_level=1, push=True)
+        self.modelList.clear()
+        for feature in self.model.features:
+            item = QListWidgetItem()
+            item.setText(feature.name)
+            item.setBackground(
+                QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            )
 
-        # for feature in self.model.features:
-        #     item = QListWidgetItem()
-        #     item.setText(feature.name)
-        #     item.setBackground(
-        #         QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        #     )
-        #     self.modelList.addItem(item)
+            self.modelList.addItem(item)
+        self.modelList.itemClicked.connect(self.onModelListItemClicked)
 
     def onOrientationTypeChanged(self, index):
         if index == 0:
@@ -204,16 +239,48 @@ class ModellingWidget(QWidget):
         pass
 
     def onEvaluateFeatureOnLayer(self):
+
+        callableOnLayer(layer, callable)
         pass
 
     def onAddModelledLithologiesToProject(self):
+        if self.model is None:
+            self.logger(message="Model not initialised", log_level=2, push=True)
+            return
+        bounding_box = self.model.bounding_box
+        feature_layer = callableToRaster(
+            lambda xyz: self.model.evaluate_model(xyz),
+            dtm=self.DtmLayer.currentLayer(),
+            bounding_box=bounding_box,
+            crs=QgsProject.instance().crs(),
+            layer_name=f'modelled_lithologies',
+        )
+        if feature_layer.isValid():
+            QgsProject.instance().addMapLayer(feature_layer)
+        else:
+            self.logger(message="Failed to add scalar field to project", log_level=2, push=True)
         pass
 
     def onAddFaultTracesToProject(self):
         pass
 
     def onAddScalarFieldToProject(self):
-        pass
+        feature_name = self.addScalarFieldComboBox.currentText()
+        if self.model is None:
+            self.logger(message="Model not initialised", log_level=2, push=True)
+            return
+        bounding_box = self.model.bounding_box
+        feature_layer = callableToRaster(
+            lambda xyz: self.model.evaluate_feature_value(feature_name, xyz),
+            dtm=self.DtmLayer.currentLayer(),
+            bounding_box=bounding_box,
+            crs=QgsProject.instance().crs(),
+            layer_name=f'{feature_name}_scalar_field',
+        )
+        if feature_layer.isValid():
+            QgsProject.instance().addMapLayer(feature_layer)
+        else:
+            self.logger(message="Failed to add scalar field to project", log_level=2, push=True)
 
     def onBasalContactsChanged(self, layer):
         self.unitNameField.setLayer(layer)
@@ -258,7 +325,12 @@ class ModellingWidget(QWidget):
                         else 10.0,
                         'order': int(attributes[u]['order']) if 'order' in attributes[u] else i,
                         'name': u,
-                        'colour': str(attributes[u]['colour']) if 'colour' in attributes[u] else colours[i],
+                        'colour': str(attributes[u]['colour'])
+                        if 'colour' in attributes[u]
+                        else colours[i],
+                        'contact': str(attributes[u]['contact'])
+                        if 'contact' in attributes[u]
+                        else 'Conformable',
                     }
                     for i, u in enumerate(unique_values)
                 ],
@@ -370,11 +442,7 @@ class ModellingWidget(QWidget):
             child = self.stratigraphicColumnContainer.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-        # self.stratigraphicColumnContainer.setColumnCount(5)
-        # self.stratigraphicColumnContainer.setRowCount(len(self._units))
-        # self.stratigraphicColumnContainer.setHorizontalHeaderLabels(
-        #     ["Unit", "Thickness", "Order","Up","Down"]
-        # )
+
         def create_lambda(i, direction):
             return lambda: self.onOrderChanged(i, i + direction)
 
@@ -406,14 +474,28 @@ class ModellingWidget(QWidget):
             color_picker.setStyleSheet(f"background-color: {background_color};")
             self.stratigraphicColumnContainer.addWidget(label, i, 0)
             self.stratigraphicColumnContainer.addWidget(spin_box, i, 1)
-            self.stratigraphicColumnContainer.addWidget(order, i, 2)
-            self.stratigraphicColumnContainer.addWidget(up, i, 3)
-            self.stratigraphicColumnContainer.addWidget(down, i, 4)
-            self.stratigraphicColumnContainer.addWidget(color_picker, i, 5)
+            self.stratigraphicColumnContainer.addWidget(up, i, 2)
+            self.stratigraphicColumnContainer.addWidget(down, i, 3)
+            self.stratigraphicColumnContainer.addWidget(color_picker, i, 4)
+            unconformity = QComboBox()
+            unconformity.addItem('Conformable')
+            unconformity.addItem('Erode')
+            unconformity.addItem('Onlap')
+            if 'contact' in value:
+                unconformity.setCurrentText(value['contact'])
+            unconformity.currentIndexChanged.connect(
+                lambda index, unit=unit: self._units[unit].update(
+                    {'contact': unconformity.currentText()}
+                )
+            )
+            self.stratigraphicColumnContainer.addWidget(unconformity, i, 5)
             up.clicked.connect(create_lambda(i, -1))
             down.clicked.connect(create_lambda(i, 1))
             color_picker.clicked.connect(create_color_picker(unit))
-            spin_box.valueChanged.connect(lambda value, unit=unit: self.onThicknessChanged(unit, value))
+            spin_box.valueChanged.connect(
+                lambda value, unit=unit: self.onThicknessChanged(unit, value)
+            )
+
     def onOrderChanged(self, old_index, new_index):
         if new_index < 0 or new_index >= len(self._units):
             return
@@ -425,9 +507,9 @@ class ModellingWidget(QWidget):
                 units[unit]['order'] = old_index
         self._units = units  # set to copy
         self._initialiseStratigraphicColumn()
+
     def onThicknessChanged(self, unit, value):
         self._units[unit]['thickness'] = value
-    
 
     def onSaveModel(self):
         try:
@@ -438,7 +520,6 @@ class ModellingWidget(QWidget):
             if fileFormat == 'python':
                 fileFormat = 'pkl'
                 self.model.to_file(os.path.join(path, name + "." + fileFormat))
-                self.processor.to_file(os.path.join(path, name + "_processor." + fileFormat))
                 return
 
             filename = os.path.join(path, name + "." + fileFormat)
@@ -462,7 +543,7 @@ class ModellingWidget(QWidget):
     def saveThicknessOrder(self):
         layer = self.basalContactsLayer.currentLayer()
         layer.startEditing()
-        field_names = ["_ls_th", "_ls_or","_ls_col"]
+        field_names = ["_ls_th", "_ls_or", "_ls_col"]
         field_types = [QVariant.Double, QVariant.Int, QVariant.String]
         for field_name, field_type in zip(field_names, field_types):
 
@@ -478,7 +559,9 @@ class ModellingWidget(QWidget):
                     layer.updateFeature(feature)
         layer.commitChanges()
         layer.updateFields()
-        self.logger(message=f"Thickness, colour and order saved to {layer.name()}", log_level=1, push=True)
+        self.logger(
+            message=f"Thickness, colour and order saved to {layer.name()}", log_level=1, push=True
+        )
 
     def onPathTextChanged(self, text):
         self.outputPath = text

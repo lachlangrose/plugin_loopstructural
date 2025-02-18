@@ -1,5 +1,5 @@
 import pandas as pd
-from qgis.core import QgsWkbTypes
+from qgis.core import QgsWkbTypes, QgsRaster
 
 
 def qgsLayerToDataFrame(layer, dtm) -> pd.DataFrame:
@@ -47,7 +47,10 @@ def qgsLayerToDataFrame(layer, dtm) -> pd.DataFrame:
 
                 # Extract the value at the point
                 z_value = dtm.dataProvider().identify(p, QgsRaster.IdentifyFormatValue)
-                z_value = dtm.valueAt(p.x(), p.y())
+                if z_value.isValid():
+                    z_value = z_value.results()[1]
+                else:
+                    z_value = -9999
                 data['Z'].append(z_value)
             if dtm is None:
                 data['Z'].append(0)
