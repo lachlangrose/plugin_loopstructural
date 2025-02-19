@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from typing import List
 
+
 class QgsProcessInputData(ProcessInputData):
     def __init__(
         self,
@@ -21,17 +22,17 @@ class QgsProcessInputData(ProcessInputData):
         bottom: float,
         dip_direction: bool,
         rotation,
-        faultNetwork:np.ndarray = None,
-        faultStratigraphy:np.ndarray = None,
-        faultlist:List[str] = None
+        faultNetwork: np.ndarray = None,
+        faultStratigraphy: np.ndarray = None,
+        faultlist: List[str] = None,
     ):
-        i,j = np.where(faultNetwork == 1)
+        i, j = np.where(faultNetwork == 1)
         edges = []
         edgeproperties = []
-        for ii,jj in zip(i,j):
-            edges.append((faultlist[jj],faultlist[ii]))
-            edgeproperties.append({'type':'abuts'})
-        
+        for ii, jj in zip(i, j):
+            edges.append((faultlist[jj], faultlist[ii]))
+            edgeproperties.append({'type': 'abuts'})
+
         contact_locations = qgsLayerToDataFrame(basal_contacts, dtm)
         fault_data = qgsLayerToDataFrame(fault_trace, dtm)
         contact_orientations = qgsLayerToDataFrame(structural_data, dtm)

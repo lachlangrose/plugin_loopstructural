@@ -27,6 +27,7 @@ from LoopStructural.utils import random_hex_colour
 from qgis.core import QgsField
 from PyQt5.QtCore import QVariant
 import numpy as np
+
 # from .feature_widget import FeatureWidget
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
@@ -48,6 +49,7 @@ class ModellingWidget(QWidget):
         self.outputPath = ""
         self.activeFeature = None
         self.groups = []
+
     def _set_layer_filters(self):
         # Set filters for the layer selection comboboxes
         # basal contacts can be line or points
@@ -159,21 +161,21 @@ class ModellingWidget(QWidget):
             'orientation': self.orientationField.currentField(),
             'structure_unitname': self.structuralDataUnitName.currentField(),
         }
-        faultNetwork=np.zeros((len(self._faults),len(self._faults)))
+        faultNetwork = np.zeros((len(self._faults), len(self._faults)))
         for i in range(len(self._faults)):
             for j in range(len(self._faults)):
                 if i != j:
                     item = self.faultNetworkTable.cellWidget(i, j)
                     if item.currentText() == 'Abuts':
-                        faultNetwork[i,j] = 1
+                        faultNetwork[i, j] = 1
                     elif item.currentText() == 'Cuts':
-                        faultNetwork[i,j] = -1
-        faultStratigraphy = np.zeros((len(self._faults),len(self.groups)))
+                        faultNetwork[i, j] = -1
+        faultStratigraphy = np.zeros((len(self._faults), len(self.groups)))
         for i in range(len(self._faults)):
             for j in range(len(self.groups)):
                 item = self.faultStratigraphyTable.cellWidget(i, j)
-                faultStratigraphy[i,j] = item.isChecked()
-        
+                faultStratigraphy[i, j] = item.isChecked()
+
         processor = QgsProcessInputData(
             basal_contacts=self.basalContactsLayer.currentLayer(),
             stratigraphic_column=self._units,
@@ -365,20 +367,21 @@ class ModellingWidget(QWidget):
         if self._faults:
             faults = list(self._faults.keys())
             self.faultSelection.addItems(faults)
+
     def initFaultNetwork(self):
-        #faultNetwork
+        # faultNetwork
         self.faultNetworkTable.clear()
         if not self._faults:
             return
-            
+
         faults = list(self._faults.keys())
         self.faultNetworkTable.setRowCount(len(faults))
         self.faultNetworkTable.setColumnCount(len(faults))
-        
+
         # Set headers
         self.faultNetworkTable.setHorizontalHeaderLabels(faults)
         self.faultNetworkTable.setVerticalHeaderLabels(faults)
-        
+
         # Fill table with empty items
         for i in range(len(faults)):
             for j in range(len(faults)):
@@ -392,7 +395,7 @@ class ModellingWidget(QWidget):
                     flag.addItem('Cuts')
                 # item = QTableWidgetItem(flag)
                 self.faultNetworkTable.setCellWidget(i, j, flag)
-            
+
         # Make cells more visible
         self.faultNetworkTable.setShowGrid(True)
         self.faultNetworkTable.resizeColumnsToContents()
@@ -401,23 +404,23 @@ class ModellingWidget(QWidget):
         self.faultStratigraphyTable.clear()
         if not self._faults:
             return
-            
+
         faults = list(self._faults.keys())
         groups = [g['name'] for g in self.groups]
         self.faultStratigraphyTable.setRowCount(len(faults))
         self.faultStratigraphyTable.setColumnCount(len(groups))
-        
+
         # Set headers
         self.faultStratigraphyTable.setHorizontalHeaderLabels(groups)
         self.faultStratigraphyTable.setVerticalHeaderLabels(faults)
-        
+
         # Fill table with empty items
         for j in range(len(groups)):
             for i in range(len(faults)):
                 flag = QCheckBox()
                 flag.setChecked(True)
                 self.faultStratigraphyTable.setCellWidget(i, j, flag)
-            
+
         # Make cells more visible
         self.faultStratigraphyTable.setShowGrid(True)
         self.faultStratigraphyTable.resizeColumnsToContents()
@@ -587,13 +590,10 @@ class ModellingWidget(QWidget):
         for i, (unit, value) in enumerate(columns):
             group.append(value)
             if value['contact'] != 'Conformable':
-                self.groups.append({'name':f'group_{ii}','units':group})
-                ii+=1
+                self.groups.append({'name': f'group_{ii}', 'units': group})
+                ii += 1
                 group = []
-        self.groups.append({'name':f'group_{ii}','units':group})
-
-            
-
+        self.groups.append({'name': f'group_{ii}', 'units': group})
 
     def onOrderChanged(self, old_index, new_index):
         if new_index < 0 or new_index >= len(self._units):
@@ -606,6 +606,7 @@ class ModellingWidget(QWidget):
                 units[unit]['order'] = old_index
         self._units = units  # set to copy
         self._initialiseStratigraphicColumn()
+
     def onThicknessChanged(self, unit, value):
         self._units[unit]['thickness'] = value
 
