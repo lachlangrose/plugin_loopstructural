@@ -26,7 +26,7 @@ from ...main.rasterFromModel import callableToRaster
 from LoopStructural.utils import random_hex_colour
 from qgis.core import QgsField
 from PyQt5.QtCore import QVariant
-
+import numpy as np
 # from .feature_widget import FeatureWidget
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
@@ -47,7 +47,7 @@ class ModellingWidget(QWidget):
         self.model = None
         self.outputPath = ""
         self.activeFeature = None
-
+        self.groups = []
     def _set_layer_filters(self):
         # Set filters for the layer selection comboboxes
         # basal contacts can be line or points
@@ -159,6 +159,21 @@ class ModellingWidget(QWidget):
             'orientation': self.orientationField.currentField(),
             'structure_unitname': self.structuralDataUnitName.currentField(),
         }
+        faultNetwork=np.zeros((len(self._faults),len(self._faults)))
+        for i in range(len(self._faults)):
+            for j in range(len(self._faults)):
+                if i != j:
+                    item = self.faultNetworkTable.cellWidget(i, j)
+                    if item.currentText() == 'Abuts':
+                        faultNetwork[i,j] = 1
+                    elif item.currentText() == 'Cuts':
+                        faultNetwork[i,j] = -1
+        faultStratigraphy = np.zeros((len(self._faults),len(self.groups)))
+        for i in range(len(self._faults)):
+            for j in range(len(self.groups)):
+                item = self.faultStratigraphyTable.cellWidget(i, j)
+                faultStratigraphy[i,j] = item.isChecked()
+        
         processor = QgsProcessInputData(
             basal_contacts=self.basalContactsLayer.currentLayer(),
             stratigraphic_column=self._units,
@@ -172,6 +187,9 @@ class ModellingWidget(QWidget):
             bottom=self.depthSpinBox.value(),
             dip_direction=self.orientationType.currentIndex() == 1,
             rotation=self.rotationDoubleSpinBox.value(),
+            faultNetwork=faultNetwork,
+            faultStratigraphy=faultStratigraphy,
+            faultlist=list(self._faults.keys()),
         )
         self.processor = processor
         self.model = processor.get_model()
@@ -224,8 +242,10 @@ class ModellingWidget(QWidget):
         self.addScalarFieldComboBox.clear()
         self.evaluateFeatureFeatureSelector.clear()
         for feature in self.model.features:
-            self.addScalarFieldComboBox.addItem(feature.name)
-            self.evaluateFeatureFeatureSelector.addItem(feature.name)
+            ## make sure that private features are not added to the list
+            if feature.name[0] != "_":
+                self.addScalarFieldComboBox.addItem(feature.name)
+                self.evaluateFeatureFeatureSelector.addItem(feature.name)
         self.addScalarFieldComboBox.setCurrentIndex(0)
         self.evaluateFeatureFeatureSelector.setCurrentIndex(0)
 
@@ -292,6 +312,7 @@ class ModellingWidget(QWidget):
         self._faults = {}  # reset faults
         self.onSelectedFaultChanged(-1)
         self.initFaultSelector()
+        self.initFaultNetwork()
 
     def onUnitFieldChanged(self, field):
         unique_values = set()
@@ -344,6 +365,63 @@ class ModellingWidget(QWidget):
         if self._faults:
             faults = list(self._faults.keys())
             self.faultSelection.addItems(faults)
+    def initFaultNetwork(self):
+        #faultNetwork
+        self.faultNetworkTable.clear()
+        if not self._faults:
+            return
+            
+        faults = list(self._faults.keys())
+        self.faultNetworkTable.setRowCount(len(faults))
+        self.faultNetworkTable.setColumnCount(len(faults))
+        
+        # Set headers
+        self.faultNetworkTable.setHorizontalHeaderLabels(faults)
+        self.faultNetworkTable.setVerticalHeaderLabels(faults)
+        
+        # Fill table with empty items
+        for i in range(len(faults)):
+            for j in range(len(faults)):
+                if i == j:
+                    flag = QLabel()
+                    flag.setText('')
+                else:
+                    flag = QComboBox()
+                    flag.addItem('')
+                    flag.addItem('Abuts')
+                    flag.addItem('Cuts')
+                # item = QTableWidgetItem(flag)
+                self.faultNetworkTable.setCellWidget(i, j, flag)
+            
+        # Make cells more visible
+        self.faultNetworkTable.setShowGrid(True)
+        self.faultNetworkTable.resizeColumnsToContents()
+        self.faultNetworkTable.resizeRowsToContents()
+
+        self.faultStratigraphyTable.clear()
+        if not self._faults:
+            return
+            
+        faults = list(self._faults.keys())
+        groups = [g['name'] for g in self.groups]
+        self.faultStratigraphyTable.setRowCount(len(faults))
+        self.faultStratigraphyTable.setColumnCount(len(groups))
+        
+        # Set headers
+        self.faultStratigraphyTable.setHorizontalHeaderLabels(groups)
+        self.faultStratigraphyTable.setVerticalHeaderLabels(faults)
+        
+        # Fill table with empty items
+        for j in range(len(groups)):
+            for i in range(len(faults)):
+                flag = QCheckBox()
+                flag.setChecked(True)
+                self.faultStratigraphyTable.setCellWidget(i, j, flag)
+            
+        # Make cells more visible
+        self.faultStratigraphyTable.setShowGrid(True)
+        self.faultStratigraphyTable.resizeColumnsToContents()
+        self.faultStratigraphyTable.resizeRowsToContents()
 
     def onFaultFieldChanged(self, field):
         name_field = self.faultNameField.currentField()
@@ -365,6 +443,7 @@ class ModellingWidget(QWidget):
                     "crs": layer.crs().authid(),
                 }
         self.initFaultSelector()
+        self.initFaultNetwork()
 
     def onSelectedFaultChanged(self, index):
         if index >= 0:
@@ -488,6 +567,8 @@ class ModellingWidget(QWidget):
                     {'contact': unconformity.currentText()}
                 )
             )
+            unconformity.currentIndexChanged.connect(self.stratigraphicColumnChanged)
+
             self.stratigraphicColumnContainer.addWidget(unconformity, i, 5)
             up.clicked.connect(create_lambda(i, -1))
             down.clicked.connect(create_lambda(i, 1))
@@ -495,6 +576,24 @@ class ModellingWidget(QWidget):
             spin_box.valueChanged.connect(
                 lambda value, unit=unit: self.onThicknessChanged(unit, value)
             )
+        self.stratigraphicColumnChanged(0)
+
+    def stratigraphicColumnChanged(self, index):
+        columns = self._getSortedStratigraphicColumn()
+
+        self.groups = []
+        group = []
+        ii = 0
+        for i, (unit, value) in enumerate(columns):
+            group.append(value)
+            if value['contact'] != 'Conformable':
+                self.groups.append({'name':f'group_{ii}','units':group})
+                ii+=1
+                group = []
+        self.groups.append({'name':f'group_{ii}','units':group})
+
+            
+
 
     def onOrderChanged(self, old_index, new_index):
         if new_index < 0 or new_index >= len(self._units):
@@ -507,7 +606,6 @@ class ModellingWidget(QWidget):
                 units[unit]['order'] = old_index
         self._units = units  # set to copy
         self._initialiseStratigraphicColumn()
-
     def onThicknessChanged(self, unit, value):
         self._units[unit]['thickness'] = value
 
