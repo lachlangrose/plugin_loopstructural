@@ -1,2 +1,2 @@
-#! python3  
-from .provider import LoopstructuralProvider  
+#! python3
+from .provider import LoopstructuralProvider

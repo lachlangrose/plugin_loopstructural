@@ -38,7 +38,7 @@ class QgsProcessInputData(ProcessInputData):
         thicknesses = {}
         stratigraphic_order = []
         for g in groups:
-            stratigraphic_order.append((g['name'],[u['name'] for u in g['units']]))
+            stratigraphic_order.append((g['name'], [u['name'] for u in g['units']]))
             for u in g['units']:
                 thicknesses[u['name']] = u['thickness']
 

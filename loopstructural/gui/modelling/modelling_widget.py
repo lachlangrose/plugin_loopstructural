@@ -438,7 +438,6 @@ class ModellingWidget(QWidget):
         self.faultNetworkTable.resizeRowsToContents()
 
         self.faultStratigraphyTable.clear()
-        
 
         faults = list(self._faults.keys())
         groups = [g['name'] for g in self.groups]
@@ -532,7 +531,7 @@ class ModellingWidget(QWidget):
         if fault:
             centre = self._faults[fault]['centre']
             major_axis = self._faults[fault]['major_axis']
-            
+
             minor_axis = self._faults[fault]['minor_axis']
             azimuth = self._faults[fault].get('azimuth', 0)
             crs = self._faults[fault].get('crs', 'EPSG:4326')
@@ -600,8 +599,10 @@ class ModellingWidget(QWidget):
             unconformity.addItem('Onlap')
             if 'contact' in value:
                 unconformity.setCurrentText(value['contact'])
-            
-            unconformity.currentTextChanged.connect(lambda text, unit=unit: self.stratigraphicColumnChanged(text,unit))
+
+            unconformity.currentTextChanged.connect(
+                lambda text, unit=unit: self.stratigraphicColumnChanged(text, unit)
+            )
 
             self.stratigraphicColumnContainer.addWidget(unconformity, i, 5)
             up.clicked.connect(create_lambda(i, -1))
@@ -612,9 +613,10 @@ class ModellingWidget(QWidget):
             )
         self.updateGroups()
 
-    def stratigraphicColumnChanged(self, text,unit):
+    def stratigraphicColumnChanged(self, text, unit):
         self._units[unit]['contact'] = text
         self.updateGroups()
+
     def updateGroups(self):
         columns = self._getSortedStratigraphicColumn()
 
@@ -656,8 +658,6 @@ class ModellingWidget(QWidget):
                 fileFormat = 'pkl'
                 self.model.to_file(os.path.join(path, name + "." + fileFormat))
                 return
-
-            
 
             self.model.save(
                 filename=os.path.join(path, name + "." + fileFormat),

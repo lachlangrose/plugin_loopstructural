@@ -6,6 +6,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QVariant
 
+
 def callableToLayer(callable, layer, dtm, name: str):
     """
     Convert a feature to a raster and store it in QGIS as a temporary layer.

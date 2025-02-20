@@ -1,4 +1,4 @@
-#! python3  
+#! python3
 
 """
     Processing provider module.
