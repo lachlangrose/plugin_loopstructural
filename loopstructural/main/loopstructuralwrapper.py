@@ -11,7 +11,7 @@ class QgsProcessInputData(ProcessInputData):
     def __init__(
         self,
         basal_contacts,
-        stratigraphic_column: dict,
+        groups: List[dict],
         fault_trace,
         fault_properties,
         structural_data,
@@ -37,12 +37,19 @@ class QgsProcessInputData(ProcessInputData):
         fault_data = qgsLayerToDataFrame(fault_trace, dtm)
         contact_orientations = qgsLayerToDataFrame(structural_data, dtm)
         thicknesses = {}
-        for key in stratigraphic_column.keys():
-            thicknesses[key] = stratigraphic_column[key]['thickness']
-        stratigraphic_order = [None] * len(thicknesses)
-        for key in stratigraphic_column.keys():
-            stratigraphic_order[stratigraphic_column[key]['order']] = key
-        stratigraphic_order = [('sg', stratigraphic_order)]
+        stratigraphic_order = []
+        for g in groups:
+            stratigraphic_order.append((g['name'],[u['name'] for u in g['units']]))
+            for u in g['units']:
+                thicknesses[u['name']] = u['thickness']
+
+        # for key in stratigraphic_column.keys():
+        #     thicknesses[key] = stratigraphic_column[key]['thickness']
+        # stratigraphic_order = [None] * len(thicknesses)
+        # for key in stratigraphic_column.keys():
+        #     stratigraphic_order[stratigraphic_column[key]['order']] = key
+        # print(stratigraphic_column)
+        # stratigraphic_order = [('sg', stratigraphic_order)]
         roidf = qgsLayerToDataFrame(roi, None)
         roi_rectangle = roi.extent()
         minx = roi_rectangle.xMinimum()
@@ -128,8 +135,8 @@ class QgsProcessInputData(ProcessInputData):
             fault_properties=fault_properties,
             origin=origin,
             maximum=maximum,
-            fault_edges=edges,
-            fault_edge_properties=edgeproperties,
+            fault_edges=edges if len(edges) > 0 else None,
+            fault_edge_properties=edgeproperties if len(edgeproperties) > 0 else None,
             # fault_edges=[(fault,None) for fault in fault_data['fault_name'].unique()],
         )
 

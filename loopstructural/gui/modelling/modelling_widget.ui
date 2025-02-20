@@ -26,7 +26,7 @@
     <enum>Qt::WheelFocus</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -35,10 +35,10 @@
     <widget class="QWidget" name="verticalLayoutWidget_6">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>10</y>
        <width>591</width>
-       <height>671</height>
+       <height>701</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -57,9 +57,9 @@
             <widget class="QWidget" name="formLayoutWidget">
              <property name="geometry">
               <rect>
-               <x>0</x>
+               <x>10</x>
                <y>20</y>
-               <width>581</width>
+               <width>571</width>
                <height>161</height>
               </rect>
              </property>
@@ -147,6 +147,9 @@
               </item>
               <item row="4" column="1">
                <widget class="QDoubleSpinBox" name="rotationDoubleSpinBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rotation of the map/dataset for modelling. The model bounding box is set to be aligned to the rotated map.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -160,7 +163,11 @@
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QComboBox" name="cRSComboBox"/>
+               <widget class="QComboBox" name="cRSComboBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -178,9 +185,9 @@
             <widget class="QWidget" name="formLayoutWidget_2">
              <property name="geometry">
               <rect>
-               <x>0</x>
+               <x>10</x>
                <y>20</y>
-               <width>591</width>
+               <width>571</width>
                <height>201</height>
               </rect>
              </property>
@@ -312,10 +319,10 @@
             <widget class="QWidget" name="formLayoutWidget_3">
              <property name="geometry">
               <rect>
-               <x>0</x>
+               <x>10</x>
                <y>20</y>
-               <width>591</width>
-               <height>181</height>
+               <width>571</width>
+               <height>141</height>
               </rect>
              </property>
              <layout class="QFormLayout" name="formLayout_4">
@@ -367,6 +374,16 @@
                 </property>
                </widget>
               </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_29">
+                <property name="text">
+                 <string>Pitch</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QgsFieldComboBox" name="faultPitchField"/>
+              </item>
              </layout>
             </widget>
            </widget>
@@ -388,7 +405,7 @@
        <x>0</x>
        <y>10</y>
        <width>591</width>
-       <height>651</height>
+       <height>701</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -402,9 +419,9 @@
           <widget class="QWidget" name="verticalLayoutWidget_3">
            <property name="geometry">
             <rect>
-             <x>0</x>
+             <x>10</x>
              <y>30</y>
-             <width>591</width>
+             <width>561</width>
              <height>281</height>
             </rect>
            </property>
@@ -442,10 +459,10 @@
           <widget class="QWidget" name="verticalLayoutWidget_12">
            <property name="geometry">
             <rect>
-             <x>0</x>
+             <x>10</x>
              <y>20</y>
-             <width>591</width>
-             <height>291</height>
+             <width>561</width>
+             <height>313</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -494,14 +511,14 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_18">
                 <property name="text">
                  <string>Center</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
+              <item row="3" column="1">
                <layout class="QGridLayout" name="gridLayout">
                 <item row="0" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -583,14 +600,14 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="label_20">
                 <property name="text">
                  <string>Major Axis</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
+              <item row="4" column="1">
                <widget class="QDoubleSpinBox" name="faultMajorAxisLength">
                 <property name="enabled">
                  <bool>false</bool>
@@ -600,14 +617,14 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="5" column="0">
                <widget class="QLabel" name="label_21">
                 <property name="text">
                  <string>Minor Axis</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="5" column="1">
                <widget class="QDoubleSpinBox" name="faultMinorAxisLength">
                 <property name="enabled">
                  <bool>false</bool>
@@ -617,14 +634,14 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
+              <item row="6" column="0">
                <widget class="QLabel" name="label_22">
                 <property name="text">
                  <string>Intermediate Axis</string>
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="6" column="1">
                <widget class="QDoubleSpinBox" name="faultIntermediateAxisLength">
                 <property name="enabled">
                  <bool>false</bool>
@@ -634,19 +651,29 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="faultActiveLabel">
                 <property name="text">
                  <string>Active</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="7" column="1">
                <widget class="QCheckBox" name="faultActiveCheckBox">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
                </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_30">
+                <property name="text">
+                 <string>Pitch</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QgsDoubleSpinBox" name="faultPitchValue"/>
               </item>
              </layout>
             </item>
@@ -676,7 +703,7 @@
        <x>0</x>
        <y>10</y>
        <width>591</width>
-       <height>711</height>
+       <height>701</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_22">
@@ -728,10 +755,10 @@
     <widget class="QWidget" name="verticalLayoutWidget_13">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>10</y>
        <width>591</width>
-       <height>641</height>
+       <height>701</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -914,17 +941,7 @@
                 </item>
                 <item>
                  <property name="text">
-                  <string>gOcad</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
                   <string>geoh5</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>omf</string>
                  </property>
                 </item>
                </widget>
@@ -941,6 +958,9 @@
                 <property name="text">
                  <string/>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
               <item row="2" column="0">
@@ -954,6 +974,9 @@
                <widget class="QCheckBox" name="faultSurfacesCheckBox">
                 <property name="text">
                  <string/>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -969,6 +992,9 @@
                 <property name="text">
                  <string/>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
               <item row="4" column="0">
@@ -983,31 +1009,37 @@
                 <property name="text">
                  <string/>
                 </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="modelNameLabel">
-                <property name="text">
-                 <string>Model Name</string>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
-               <widget class="QLineEdit" name="modelNameLineEdit"/>
-              </item>
-              <item row="6" column="0">
+              <item row="5" column="0">
                <widget class="QLabel" name="label_13">
                 <property name="text">
                  <string>Fault Data</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="5" column="1">
                <widget class="QCheckBox" name="faultDataCheckBox">
                 <property name="text">
                  <string/>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="modelNameLabel">
+                <property name="text">
+                 <string>Model Name</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="modelNameLineEdit"/>
               </item>
               <item row="7" column="0">
                <widget class="QLabel" name="label_24">
@@ -1065,6 +1097,9 @@
               </item>
               <item row="0" column="1">
                <widget class="QPushButton" name="addModelContactsToProject">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Add to Project</string>
                 </property>
@@ -1082,6 +1117,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QPushButton" name="addFaultDisplacementsToProject">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Add to Project</string>
                 </property>
@@ -1151,6 +1189,9 @@
                   </item>
                   <item>
                    <widget class="QCheckBox" name="evaluateFeatureGradientFlag">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
                      <string>Gradient</string>
                     </property>
@@ -1176,6 +1217,9 @@
               </item>
               <item row="5" column="1">
                <widget class="QPushButton" name="addFaultTracesToProject">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Add to map</string>
                 </property>
@@ -1266,6 +1310,11 @@ p, li { white-space: pre-wrap; }
   </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QgsDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>qgsdoublespinbox.h</header>
+  </customwidget>
   <customwidget>
    <class>QgsFieldComboBox</class>
    <extends>QComboBox</extends>

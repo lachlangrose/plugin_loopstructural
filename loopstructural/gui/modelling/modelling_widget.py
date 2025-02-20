@@ -1,32 +1,39 @@
+import os
+import random
+
+from PyQt5.QtCore import QVariant
+import numpy as np
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsMapLayerProxyModel
-
-from PyQt5.QtCore import QSize
-
 from qgis.PyQt.QtWidgets import (
-    QWidget,
-    QListWidgetItem,
-    QTableWidgetItem,
-    QLabel,
-    QDoubleSpinBox,
-    QSpinBox,
-    QFileDialog,
-    QPushButton,
-    QColorDialog,
     QCheckBox,
+    QColorDialog,
     QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QLabel,
+    QListWidgetItem,
+    QPushButton,
+    QWidget,
 )
-from qgis.core import QgsProject, QgsEllipse, QgsPoint, QgsVectorLayer, QgsFeature
-import random
-import os
+from qgis.core import (
+    QgsEllipse,
+    QgsFeature,
+    QgsField,
+    QgsMapLayerProxyModel,
+    QgsFieldProxyModel,
+    QgsPoint,
+    QgsProject,
+    QgsVectorLayer,
+)
+
+from LoopStructural.utils import random_hex_colour
+
 from ...main import QgsProcessInputData
 from ...main.geometry.calculateLineAzimuth import calculateAverageAzimuth
 from ...main.rasterFromModel import callableToRaster
-from LoopStructural.utils import random_hex_colour
-from qgis.core import QgsField
-from PyQt5.QtCore import QVariant
-import numpy as np
+from ...main.callableToLayer import callableToLayer
+
 
 # from .feature_widget import FeatureWidget
 # from LoopStructural.visualisation import Loop3DView
@@ -75,6 +82,13 @@ class ModellingWidget(QWidget):
         # evaluate on feature layer
         self.evaluateFeatureLayerSelector.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.evaluateFeatureLayerSelector.setAllowEmptyLayer(True)
+        # orientation field can only be double or int
+        self.orientationField.setFilters(QgsFieldProxyModel.Numeric)
+        self.dipField.setFilters(QgsFieldProxyModel.Numeric)
+        # fault dip field can only be double or int
+        self.faultDipField.setFilters(QgsFieldProxyModel.Numeric)
+        # fault displacement field can only be double or int
+        self.faultDisplacementField.setFilters(QgsFieldProxyModel.Numeric)
 
     def _connectSignals(self):
         self.basalContactsLayer.layerChanged.connect(self.onBasalContactsChanged)
@@ -178,7 +192,7 @@ class ModellingWidget(QWidget):
 
         processor = QgsProcessInputData(
             basal_contacts=self.basalContactsLayer.currentLayer(),
-            stratigraphic_column=self._units,
+            groups=self.groups,
             fault_trace=self.faultTraceLayer.currentLayer(),
             fault_properties=self._faults,
             structural_data=self.structuralDataLayer.currentLayer(),
@@ -258,11 +272,24 @@ class ModellingWidget(QWidget):
         pass
 
     def onEvaluateModelOnLayer(self):
-        pass
+        layer = self.evaluateModelOnLayerSelector.currentLayer()
+
+        callableToLayer(
+            lambda xyz: self.model.evaluate_model(xyz),
+            layer,
+            self.DtmLayer.currentLayer(),
+            'unit_id',
+        )
 
     def onEvaluateFeatureOnLayer(self):
-
-        callableOnLayer(layer, callable)
+        feature_name = self.evaluateFeatureFeatureSelector.currentText()
+        layer = self.evaluateFeatureLayerSelector.currentLayer()
+        callableToLayer(
+            lambda xyz: self.model.evaluate_feature_value(feature_name, xyz),
+            layer,
+            self.DtmLayer.currentLayer(),
+            feature_name,
+        )
         pass
 
     def onAddModelledLithologiesToProject(self):
@@ -275,7 +302,7 @@ class ModellingWidget(QWidget):
             dtm=self.DtmLayer.currentLayer(),
             bounding_box=bounding_box,
             crs=QgsProject.instance().crs(),
-            layer_name=f'modelled_lithologies',
+            layer_name='modelled_lithologies',
         )
         if feature_layer.isValid():
             QgsProject.instance().addMapLayer(feature_layer)
@@ -343,17 +370,21 @@ class ModellingWidget(QWidget):
                 list(unique_values),
                 [
                     {
-                        'thickness': attributes[u]['thickness']
-                        if 'thickness' in attributes[u]
-                        else 10.0,
+                        'thickness': (
+                            attributes[u]['thickness'] if 'thickness' in attributes[u] else 10.0
+                        ),
                         'order': int(attributes[u]['order']) if 'order' in attributes[u] else i,
                         'name': u,
-                        'colour': str(attributes[u]['colour'])
-                        if 'colour' in attributes[u]
-                        else colours[i],
-                        'contact': str(attributes[u]['contact'])
-                        if 'contact' in attributes[u]
-                        else 'Conformable',
+                        'colour': (
+                            str(attributes[u]['colour'])
+                            if 'colour' in attributes[u]
+                            else colours[i]
+                        ),
+                        'contact': (
+                            str(attributes[u]['contact'])
+                            if 'contact' in attributes[u]
+                            else 'Conformable'
+                        ),
                     }
                     for i, u in enumerate(unique_values)
                 ],
@@ -371,6 +402,11 @@ class ModellingWidget(QWidget):
     def initFaultNetwork(self):
         # faultNetwork
         self.faultNetworkTable.clear()
+        self.faultNetworkTable.setRowCount(0)
+        self.faultNetworkTable.setColumnCount(0)
+        self.faultStratigraphyTable.clear()
+        self.faultStratigraphyTable.setRowCount(0)
+        self.faultStratigraphyTable.setColumnCount(0)
         if not self._faults:
             return
 
@@ -402,8 +438,7 @@ class ModellingWidget(QWidget):
         self.faultNetworkTable.resizeRowsToContents()
 
         self.faultStratigraphyTable.clear()
-        if not self._faults:
-            return
+        
 
         faults = list(self._faults.keys())
         groups = [g['name'] for g in self.groups]
@@ -565,12 +600,8 @@ class ModellingWidget(QWidget):
             unconformity.addItem('Onlap')
             if 'contact' in value:
                 unconformity.setCurrentText(value['contact'])
-            unconformity.currentIndexChanged.connect(
-                lambda index, unit=unit: self._units[unit].update(
-                    {'contact': unconformity.currentText()}
-                )
-            )
-            unconformity.currentIndexChanged.connect(self.stratigraphicColumnChanged)
+            
+            unconformity.currentTextChanged.connect(lambda text, unit=unit: self.stratigraphicColumnChanged(text,unit))
 
             self.stratigraphicColumnContainer.addWidget(unconformity, i, 5)
             up.clicked.connect(create_lambda(i, -1))
@@ -579,9 +610,12 @@ class ModellingWidget(QWidget):
             spin_box.valueChanged.connect(
                 lambda value, unit=unit: self.onThicknessChanged(unit, value)
             )
-        self.stratigraphicColumnChanged(0)
+        self.updateGroups()
 
-    def stratigraphicColumnChanged(self, index):
+    def stratigraphicColumnChanged(self, text,unit):
+        self._units[unit]['contact'] = text
+        self.updateGroups()
+    def updateGroups(self):
         columns = self._getSortedStratigraphicColumn()
 
         self.groups = []
@@ -593,7 +627,9 @@ class ModellingWidget(QWidget):
                 self.groups.append({'name': f'group_{ii}', 'units': group})
                 ii += 1
                 group = []
+
         self.groups.append({'name': f'group_{ii}', 'units': group})
+        self.initFaultNetwork()
 
     def onOrderChanged(self, old_index, new_index):
         if new_index < 0 or new_index >= len(self._units):
