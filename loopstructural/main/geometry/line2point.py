@@ -1,15 +1,12 @@
 from PyQt5.QtCore import QVariant
 
 from qgis.core import (
-    QgsProject,
     QgsVectorLayer,
     QgsFeature,
     QgsGeometry,
     QgsPoint,
     QgsField,
     QgsFields,
-    QgsWkbTypes,
-    QgsVectorFileWriter,
 )
 
 

@@ -1,6 +1,5 @@
 from LoopStructural import GeologicalModel
 from LoopStructural.modelling.input import ProcessInputData
-from LoopStructural.utils import EuclideanTransformation
 from .vectorLayerWrapper import qgsLayerToDataFrame
 import pandas as pd
 import numpy as np
@@ -50,7 +49,6 @@ class QgsProcessInputData(ProcessInputData):
         #     stratigraphic_order[stratigraphic_column[key]['order']] = key
         # print(stratigraphic_column)
         # stratigraphic_order = [('sg', stratigraphic_order)]
-        roidf = qgsLayerToDataFrame(roi, None)
         roi_rectangle = roi.extent()
         minx = roi_rectangle.xMinimum()
         maxx = roi_rectangle.xMaximum()

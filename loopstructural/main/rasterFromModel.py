@@ -1,6 +1,6 @@
 import numpy as np
 from osgeo import gdal, osr
-from qgis.core import QgsRasterLayer, QgsProject
+from qgis.core import QgsRasterLayer
 from .geometry.mapGrid import createGrid
 import uuid
 import tempfile

@@ -362,7 +362,7 @@ class ModellingWidget(QWidget):
                 unique_values.add(str(feature[field_index]))
                 attributes[str(feature[field_index])] = {}
                 for k in fields:
-                    if feature[fields[k]] != None:
+                    if feature[fields[k]] is not None:
                         attributes[str(feature[field_index])][k] = feature[fields[k]]
         colours = random_hex_colour(n=len(unique_values))
         self._units = dict(
@@ -532,7 +532,7 @@ class ModellingWidget(QWidget):
         if fault:
             centre = self._faults[fault]['centre']
             major_axis = self._faults[fault]['major_axis']
-            intermediate_axis = self._faults[fault]['intermediate_axis']
+            
             minor_axis = self._faults[fault]['minor_axis']
             azimuth = self._faults[fault].get('azimuth', 0)
             crs = self._faults[fault].get('crs', 'EPSG:4326')
@@ -621,7 +621,7 @@ class ModellingWidget(QWidget):
         self.groups = []
         group = []
         ii = 0
-        for i, (unit, value) in enumerate(columns):
+        for _i, (_unit, value) in enumerate(columns):
             group.append(value)
             if value['contact'] != 'Conformable':
                 self.groups.append({'name': f'group_{ii}', 'units': group})
@@ -657,7 +657,7 @@ class ModellingWidget(QWidget):
                 self.model.to_file(os.path.join(path, name + "." + fileFormat))
                 return
 
-            filename = os.path.join(path, name + "." + fileFormat)
+            
 
             self.model.save(
                 filename=os.path.join(path, name + "." + fileFormat),

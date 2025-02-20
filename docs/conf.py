@@ -12,7 +12,7 @@ from os import environ, path
 sys.path.insert(0, path.abspath(".."))  # move into project package
 
 # 3rd party
-import sphinx_rtd_theme  # noqa: F401 theme of Read the Docs
+import sphinx_rtd_theme   theme of Read the Docs
 
 # Package
 from loopstructural import __about__

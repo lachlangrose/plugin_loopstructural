@@ -1,4 +1,4 @@
-#! python3  # noqa: E265
+#! python3  
 
 """
     Plugin settings form integrated into QGIS 'Options' menu.
@@ -52,7 +52,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         self.setupUi(self)
         self.setObjectName("mOptionsPage{}".format(__title__))
 
-        report_context_message = quote(
+        _report_context_message = quote(
             "> Reported from plugin settings\n\n"
             f"- operating system: {platform.system()} "
             f"{platform.release()}_{platform.version()}\n"

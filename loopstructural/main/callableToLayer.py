@@ -3,8 +3,6 @@ from qgis.core import (
     QgsField,
     QgsWkbTypes,
     QgsRaster,
-    QgsFeature,
-    QgsFeatureRequest,
 )
 from qgis.PyQt.QtCore import QVariant
 
