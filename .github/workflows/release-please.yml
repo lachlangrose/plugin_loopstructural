@@ -16,8 +16,7 @@ jobs:
     steps:
       - uses: GoogleCloudPlatform/release-please-action@v4
         id: release
-        with:
-          path: LoopStructural
+
           
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
