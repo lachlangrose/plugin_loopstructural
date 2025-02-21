@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
 
 env:
   PROJECT_FOLDER: "loopstructural"
@@ -49,11 +50,11 @@ jobs:
         bodyFile: release.md
         generateReleaseNotes: true
 
-    - name: Deploy plugin
-      run: >-
-        qgis-plugin-ci
-        release ${GITHUB_REF/refs\/tags\//}
-        --github-token ${{ secrets.GITHUB_TOKEN }}
-        --allow-uncommitted-changes
-        --create-plugin-repo
+    # - name: Deploy plugin
+    #   run: >-
+    #     qgis-plugin-ci
+    #     release ${GITHUB_REF/refs\/tags\//}
+    #     --github-token ${{ secrets.GITHUB_TOKEN }}
+    #     --allow-uncommitted-changes
+    #     --create-plugin-repo
 
