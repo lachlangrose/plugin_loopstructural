@@ -41,8 +41,8 @@ jobs:
     # - name: Compile translations
     #   run: lrelease ${{ env.PROJECT_FOLDER }}/resources/i18n/*.ts
 
-    - name : Get current changelog for ${GITHUB_REF/refs\/tags\//}
-      run: qgis-plugin-ci changelog ${GITHUB_REF/refs\/tags\//} >> release.md
+    # - name : Get current changelog for ${GITHUB_REF/refs\/tags\//}
+    #   run: qgis-plugin-ci changelog ${GITHUB_REF/refs\/tags\//} >> release.md
 
     - name: Create release on GitHub
       uses: ncipollo/release-action@v1.15.0
