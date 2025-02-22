@@ -56,15 +56,13 @@ class LoopstructuralPlugin:
 
     def initGui(self):
         """Set up plugin UI elements."""
-
+        self.toolbar = self.iface.addToolBar(u'LoopStructural')
+        self.toolbar.setObjectName(u'LoopStructural')
         # settings page within the QGIS preferences menu
         self.options_factory = PlgOptionsFactory()
         self.iface.registerOptionsWidgetFactory(self.options_factory)
 
-        # setup a menu option for LoopStructural
-        self.menu = QMenu("LoopStructural", self.iface.mainWindow())
-        self.iface.mainWindow().menuBar().addMenu(self.menu)
-
+        
         # -- Actions
         self.action_help = QAction(
             QgsApplication.getThemeIcon("mActionHelpContents.svg"),
@@ -89,7 +87,7 @@ class LoopstructuralPlugin:
             self.iface.mainWindow(),
         )
 
-        self.menu.addAction(self.action_modelling)
+        self.toolbar.addAction(self.action_modelling)
 
         # -- Menu
         self.iface.addPluginToMenu(__title__, self.action_settings)
@@ -117,10 +115,29 @@ class LoopstructuralPlugin:
         )
         self.modelling_dockwidget.setWidget(self.model_setup_widget)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.modelling_dockwidget)
+        right_docks = [
+                d
+                for d in self.iface.mainWindow().findChildren(QDockWidget)
+                if self.iface.mainWindow().dockWidgetArea(d) == Qt.RightDockWidgetArea
+            ]
+         # If there are other dock widgets, tab this one with the first one found
+        if right_docks:
+            for dock in right_docks:
+                if dock != self.modelling_dockwidget:
+                    self.iface.mainWindow().tabifyDockWidget(dock, self.modelling_dockwidget)
+                    # Optionally, bring your plugin tab to the front
+                    self.modelling_dockwidget.raise_()
+                    break
+        self.modelling_dockwidget.show()
+
         self.modelling_dockwidget.close()
         self.action_modelling.triggered.connect(
             self.modelling_dockwidget.toggleViewAction().trigger
         )
+
+
+
+
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
@@ -138,7 +155,7 @@ class LoopstructuralPlugin:
         # -- Clean up menu
         self.iface.removePluginMenu(__title__, self.action_help)
         self.iface.removePluginMenu(__title__, self.action_settings)
-
+        # self.iface.removeMenu(self.menu)
         # -- Clean up preferences panel in QGIS settings
         self.iface.unregisterOptionsWidgetFactory(self.options_factory)
 
@@ -149,6 +166,7 @@ class LoopstructuralPlugin:
         # remove actions
         del self.action_settings
         del self.action_help
+        del self.toolbar
 
     def run(self):
         """Main process.
