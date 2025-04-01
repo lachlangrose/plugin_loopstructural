@@ -26,7 +26,8 @@ from qgis.core import (
     QgsProject,
     QgsVectorLayer,
 )
-
+from pyvistaqt import QtInteractor
+import pyvista as pv
 from LoopStructural.utils import random_hex_colour
 
 from ...main import QgsProcessInputData
@@ -56,7 +57,9 @@ class ModellingWidget(QWidget):
         self.outputPath = ""
         self.activeFeature = None
         self.groups = []
-
+        self.plotter = QtInteractor(parent)
+        self.plotter.add_axes()
+        self.pyvista_layout.addWidget(self.plotter)
     def _set_layer_filters(self):
         # Set filters for the layer selection comboboxes
         # basal contacts can be line or points
@@ -137,7 +140,10 @@ class ModellingWidget(QWidget):
         self.addFaultTracesToProject.clicked.connect(self.onAddFaultTracesToProject)
         self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
         self.saveThicknessOrderButton.clicked.connect(self.saveThicknessOrder)
-
+        self.addBlockModelToPyvistaButton.clicked.connect(self.addBlockModelToPyvista)
+        self.clearPyvistaButton.clicked.connect(self.clearPyvista)
+        self.addSurfacesToPyvistaButton.clicked.connect(self.addModelSurfacesToPyvista)
+        self.addDataToPyvistaButton.clicked.connect(self.addDataToPyvista)      
     def onModelListItemClicked(self, feature):
         self.activeFeature = self.model[feature.text()]
         self.numberOfElementsSpinBox.setValue(
@@ -242,7 +248,6 @@ class ModellingWidget(QWidget):
 
     def onRunModel(self):
         try:
-            print(self.activeFeature.builder.build_arguments)   
             self.model.update(progressbar=False)
             self._model_updated()
             self.logger(message="Model run", log_level=0, push=True)
@@ -270,7 +275,31 @@ class ModellingWidget(QWidget):
 
     def onAddFaultDisplacmentsToProject(self):
         pass
-
+    def addBlockModelToPyvista(self):
+        if self.model is None:
+            self.logger(message="Model not initialised", log_level=2, push=True)
+            return
+        self.plotter.add_mesh(self.model.get_block_model()[0].vtk(),show_scalar_bar=False)
+    def addModelSurfacesToPyvista(self):
+        if self.model is None:
+            self.logger(message="Model not initialised", log_level=2, push=True)
+            return
+        surfaces = self.model.get_stratigraphic_surfaces()
+        for surface in surfaces:
+            self.plotter.add_mesh(surface.vtk(),show_scalar_bar=False,color=surface.colour) 
+        fault_surfaces = self.model.get_fault_surfaces()
+        for surface in fault_surfaces:
+            self.plotter.add_mesh(surface.vtk(),show_scalar_bar=False,color='black')
+    def addDataToPyvista(self):
+        if self.model is None:
+            self.logger(message="Model not initialised", log_level=2, push=True)
+            return
+        for f in self.model.features:
+            if f.name[0] != "_":
+                for d in f.get_data():
+                    self.plotter.add_mesh(d.vtk(), show_scalar_bar=False)
+    def clearPyvista(self):
+        self.plotter.clear()
     def onEvaluateModelOnLayer(self):
         layer = self.evaluateModelOnLayerSelector.currentLayer()
 
