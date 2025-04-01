@@ -209,7 +209,7 @@ class ModellingWidget(QWidget):
         )
         self.processor = processor
         self.model = processor.get_model()
-        self.logger(message="Model initialised", log_level=1, push=True)
+        self.logger(message="Model initialised", log_level=0, push=True)
         self.modelList.clear()
         for feature in self.model.features:
             item = QListWidgetItem()
@@ -242,10 +242,10 @@ class ModellingWidget(QWidget):
 
     def onRunModel(self):
         try:
-
+            print(self.activeFeature.builder.build_arguments)   
             self.model.update(progressbar=False)
             self._model_updated()
-            self.logger(message="Model run", log_level=1, push=True)
+            self.logger(message="Model run", log_level=0, push=True)
 
         except Exception as e:
             self.logger(
@@ -364,6 +364,7 @@ class ModellingWidget(QWidget):
                 for k in fields:
                     if feature[fields[k]] is not None:
                         attributes[str(feature[field_index])][k] = feature[fields[k]]
+       
         colours = random_hex_colour(n=len(unique_values))
         self._units = dict(
             zip(
@@ -469,14 +470,15 @@ class ModellingWidget(QWidget):
             self._faults = {}
             for feature in layer.getFeatures():
                 self._faults[str(feature[name_field])] = {
-                    'dip': feature.attributeMap().get(dip_field, 0),
-                    'displacement': feature.attributeMap().get(displacement_field, 0),
+                    'dip': feature.attributeMap().get(dip_field, 90),
+                    'displacement': feature.attributeMap().get(displacement_field, 0.1*feature.geometry().length()),
                     'centre': feature.geometry().centroid().asPoint(),
                     'major_axis': feature.geometry().length(),
                     'intermediate_axis': feature.geometry().length(),
                     'minor_axis': feature.geometry().length() / 3,
                     'active': True,
                     "azimuth": calculateAverageAzimuth(feature.geometry()),
+                    "pitch": feature.attributeMap().get('pitch', 90),
                     "crs": layer.crs().authid(),
                 }
         self.initFaultSelector()
@@ -667,7 +669,7 @@ class ModellingWidget(QWidget):
                 stratigraphic_data=self.stratigraphicDataCheckBox.isChecked(),
                 fault_data=self.faultDataCheckBox.isChecked(),
             )
-            self.logger(message=f"Model saved to {path}", log_level=1, push=True)
+            self.logger(message=f"Model saved to {path}", log_level=0, push=True)
         except Exception as e:
             self.logger(
                 message=str(e),
@@ -695,7 +697,7 @@ class ModellingWidget(QWidget):
         layer.commitChanges()
         layer.updateFields()
         self.logger(
-            message=f"Thickness, colour and order saved to {layer.name()}", log_level=1, push=True
+            message=f"Thickness, colour and order saved to {layer.name()}", log_level=0, push=True
         )
 
     def onPathTextChanged(self, text):
