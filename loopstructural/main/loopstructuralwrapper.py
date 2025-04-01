@@ -95,7 +95,7 @@ class QgsProcessInputData(ProcessInputData):
             if np.all(contact_orientations['strike'].isna()):
                 raise ValueError('Strike column name is all None. Check the column name')
             if dip_direction:
-                contact_orientations['strike'] = contact_orientations['strike'] + 90
+                contact_orientations['strike'] = contact_orientations['strike'] - 90
         else:
             contact_orientations = None
         faults = []
@@ -125,6 +125,7 @@ class QgsProcessInputData(ProcessInputData):
             fault_properties['fault_name'] = fault_properties['fault_name'].astype(str)
             fault_properties = fault_properties.set_index('fault_name')
             fault_data['fault_name'] = fault_data['fault_name'].astype(str)
+        print(stratigraphic_order)
         super().__init__(
             contacts=contact_locations,
             stratigraphic_order=stratigraphic_order,
