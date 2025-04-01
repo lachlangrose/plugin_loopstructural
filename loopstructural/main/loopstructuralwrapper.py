@@ -37,11 +37,12 @@ class QgsProcessInputData(ProcessInputData):
         contact_orientations = qgsLayerToDataFrame(structural_data, dtm)
         thicknesses = {}
         stratigraphic_order = []
+        colours = {}
         for g in groups:
             stratigraphic_order.append((g['name'], [u['name'] for u in g['units']]))
             for u in g['units']:
                 thicknesses[u['name']] = u['thickness']
-
+                colours[u['name']] = u['colour']
         # for key in stratigraphic_column.keys():
         #     thicknesses[key] = stratigraphic_column[key]['thickness']
         # stratigraphic_order = [None] * len(thicknesses)
@@ -138,6 +139,7 @@ class QgsProcessInputData(ProcessInputData):
             maximum=maximum,
             fault_edges=edges if len(edges) > 0 else None,
             fault_edge_properties=edgeproperties if len(edgeproperties) > 0 else None,
+            colours=colours,
             # fault_edges=[(fault,None) for fault in fault_data['fault_name'].unique()],
         )
 
