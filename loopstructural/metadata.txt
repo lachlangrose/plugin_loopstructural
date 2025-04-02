@@ -10,9 +10,9 @@ tags=geology,structural geology,3D geology,mining
 # credits and contact
 author=Lachlan GROSE
 email=lachlan.grose@monash.edu
-homepage=https://github.com/Loop3d/loopstructural-qgis/
-repository=https://github.com/Loop3d/loopstructural-qgis/
-tracker=https://github.com/Loop3d/loopstructural-qgis//issues/
+homepage=https://github.com/Loop3d/plugin_loopstructural/
+repository=https://github.com/Loop3d/plugin_loopstructural/
+tracker=https://github.com/Loop3d/plugin_loopstructural/issues/
 
 # experimental flag
 deprecated=False
