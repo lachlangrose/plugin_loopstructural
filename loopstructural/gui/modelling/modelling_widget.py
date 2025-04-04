@@ -1,6 +1,7 @@
+from calendar import c
 import os
 import random
-
+import json
 from PyQt5.QtCore import QVariant
 import numpy as np
 from qgis.PyQt import uic
@@ -15,6 +16,7 @@ from qgis.PyQt.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QWidget,
+    QLineEdit,
 )
 from qgis.core import (
     QgsEllipse,
@@ -26,6 +28,7 @@ from qgis.core import (
     QgsProject,
     QgsVectorLayer,
 )
+
 from pyvistaqt import QtInteractor
 import pyvista as pv
 from LoopStructural.utils import random_hex_colour
@@ -39,17 +42,19 @@ from ...main.callableToLayer import callableToLayer
 # from .feature_widget import FeatureWidget
 # from LoopStructural.visualisation import Loop3DView
 # from loopstructural.gui.modelling.stratigraphic_column import StratigraphicColumnWidget
+__title__ = "LoopStructural"
 class ModellingWidget(QWidget):
     def __init__(self, parent: QWidget = None, mapCanvas=None, logger=None):
         super().__init__(parent)
         uic.loadUi(os.path.join(os.path.dirname(__file__), "modelling_widget.ui"), self)
+        self.project = QgsProject.instance()
         self.mapCanvas = mapCanvas
         self.rotationDoubleSpinBox.setValue(mapCanvas.rotation())
         self._set_layer_filters()
         # self.unitNameField.setLayer(self.basalContactsLayer.currentLayer())
         self.logger = logger
         self._basalContacts = None
-        self._units = None
+        self._units = {}
         self._faults = {}
         self._connectSignals()
         self.view = None
@@ -60,6 +65,75 @@ class ModellingWidget(QWidget):
         self.plotter = QtInteractor(parent)
         self.plotter.add_axes()
         self.pyvista_layout.addWidget(self.plotter)
+        self.loadFromProject()
+    def setLayerComboBoxFromProject(self, comboBox: QComboBox, layerKey: str):
+        layerName, flag = self.project.readEntry(__title__, layerKey)
+        if flag:
+
+            layers = self.project.mapLayersByName(layerName)
+            print(layerName,layers)
+            if len(layers) == 0:
+                self.logger(
+                    message=f"Layer {layerName} not found in project",
+                    log_level=2,
+                    push=True,
+                )
+                return
+            comboBox.setLayer(None)
+            comboBox.setLayer(layers[0])
+    def setLayerFieldComboBoxFromProject(self, comboBox: QComboBox, fieldKey: str, layer: QgsVectorLayer):
+        if layer is None:
+            self.logger(message="Layer is None", log_level=2, push=True)
+            return
+        fieldName, flag = self.project.readEntry(__title__, fieldKey)
+        if not flag or not fieldName:
+            self.logger(message=f"Field {fieldKey} not found in project", log_level=0, push=True)
+            return
+        field_names = [field.name() for field in layer.fields()]
+        if fieldName not in field_names:
+            self.logger(
+                message=f"Field {fieldName} not found in layer {layer.name()}",
+                log_level=0,
+                push=True,
+            )
+            return
+        comboBox.setField(fieldName)
+    
+        
+        
+    def loadFromProject(self):
+        # Load settings from project    
+        self.setLayerComboBoxFromProject(self.basalContactsLayer, "basal_contacts_layer")
+        self.setLayerFieldComboBoxFromProject(self.unitNameField, "unitname_field", self.basalContactsLayer.currentLayer())
+        self.setLayerComboBoxFromProject(self.structuralDataLayer, "structural_data_layer")
+        self.setLayerFieldComboBoxFromProject(self.dipField, "dip_field", self.structuralDataLayer.currentLayer())
+        self.setLayerFieldComboBoxFromProject(self.orientationField, "orientation_field", self.structuralDataLayer.currentLayer())
+        self.setLayerFieldComboBoxFromProject(self.structuralDataUnitName, "structuraldata_unitname_field", self.structuralDataLayer.currentLayer())
+        self.setLayerComboBoxFromProject(self.faultTraceLayer, "fault_trace_layer")
+        self.setLayerFieldComboBoxFromProject(self.faultNameField, "faultname_field", self.faultTraceLayer.currentLayer())
+        self.setLayerFieldComboBoxFromProject(self.faultDipField, "fault_dip_field", self.faultTraceLayer.currentLayer())
+        self.setLayerFieldComboBoxFromProject(self.faultDisplacementField, "fault_displacement_field", self.faultTraceLayer.currentLayer())
+        self.setLayerFieldComboBoxFromProject(self.faultPitchField, "fault_pitch_field", self.faultTraceLayer.currentLayer())
+        self.setLayerComboBoxFromProject(self.DtmLayer, "dtm_layer")
+        self.setLayerComboBoxFromProject(self.roiLayer, "roi_layer")
+        label, flag = self.project.readEntry(__title__, "orientation_label", "Strike")
+        if flag:
+            self.orientationType.setCurrentText(label)
+        resp, flag = self.project.readEntry(__title__,"units","")
+        if flag:
+            self._units = json.loads(resp)
+            if len(self._units) > 0:
+                self._initialiseStratigraphicColumn()
+        resp, flag = self.project.readEntry(__title__,"faults","")
+        if flag:
+            # try:
+            self._faults = json.loads(resp)
+            self.initFaultNetwork()
+            # except:
+                # self.logger(message="Faults not loaded", log_level=2, push=True)
+
+
+        
     def _set_layer_filters(self):
         # Set filters for the layer selection comboboxes
         # basal contacts can be line or points
@@ -92,7 +166,18 @@ class ModellingWidget(QWidget):
         self.faultDipField.setFilters(QgsFieldProxyModel.Numeric)
         # fault displacement field can only be double or int
         self.faultDisplacementField.setFilters(QgsFieldProxyModel.Numeric)
-
+    def saveLayerComboBoxState(self, comboBox: QComboBox, layerKey: str):
+        layer = comboBox.currentLayer()
+        if layer is not None:
+            self.project.writeEntry(__title__, layerKey, layer.name())
+        
+    def saveLayerFieldComboBoxState(self, comboBox: QComboBox, fieldKey: str):
+        field = comboBox.currentField()
+        if field is not None:
+            self.project.writeEntry(__title__, fieldKey, field)
+    def saveSettingToProject(self,key:str,value:str):
+        self.project.writeEntry(__title__, key, value)
+    
     def _connectSignals(self):
         self.basalContactsLayer.layerChanged.connect(self.onBasalContactsChanged)
         self.structuralDataLayer.layerChanged.connect(self.onStructuralDataLayerChanged)
@@ -110,8 +195,29 @@ class ModellingWidget(QWidget):
         self.saveButton.clicked.connect(self.onSaveModel)
         self.path.textChanged.connect(self.onPathTextChanged)
         self.faultSelection.currentIndexChanged.connect(self.onSelectedFaultChanged)
+        
+        self.basalContactsLayer.layerChanged.connect(lambda: self.saveLayerComboBoxState(self.basalContactsLayer,'basal_contacts_layer'))
+        self.unitNameField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.unitNameField,'unitname_field'))
+        self.structuralDataLayer.layerChanged.connect(lambda: self.saveLayerComboBoxState(self.structuralDataLayer,'structural_data_layer'))
+        self.orientationField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.orientationField,'orientation_field'))
+
+        self.dipField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.dipField,'dip_field'))
+        self.roiLayer.layerChanged.connect(lambda: self.saveLayerComboBoxState(self.roiLayer,'roi_layer'))
+        self.faultTraceLayer.layerChanged.connect(lambda: self.saveLayerComboBoxState(self.faultTraceLayer,'fault_trace_layer'))
+        self.faultNameField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.faultNameField,'faultname_field'))
+        self.faultDipField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.faultDipField,'fault_dip_field'))
+        self.faultDisplacementField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.faultDisplacementField,'fault_displacement_field'))
+        self.faultPitchField.fieldChanged.connect(lambda: self.saveLayerFieldComboBoxState(self.faultPitchField,'fault_pitch_field'))
         self.faultDipValue.valueChanged.connect(
-            lambda value: self.updateFaultProperty('dip', value)
+            lambda value: self.updateFaultProperty('fault_dip', value)
+        )
+        
+        
+        self.structuralDataUnitName.fieldChanged.connect(
+            lambda: self.saveLayerFieldComboBoxState(self.structuralDataUnitName,'structuraldata_unitname_field')
+        )
+        self.faultPitchValue.valueChanged.connect(
+            lambda value: self.updateFaultProperty('fault_pitch', value)
         )
         self.faultDisplacementValue.valueChanged.connect(
             lambda value: self.updateFaultProperty('displacement', value)
@@ -128,6 +234,9 @@ class ModellingWidget(QWidget):
         self.faultMinorAxisLength.valueChanged.connect(
             lambda value: self.updateFaultProperty('minor_axis', value)
         )
+       
+        self.orientationType.currentIndexChanged.connect(lambda value: self.saveSettingToProject('orientation_type', self.orientationLabel.text()))
+            
         # self.faultCentreX.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
         # self.faultCentreY.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
         # self.faultCentreZ.valueChanged.connect(lambda value: self.updateFaultProperty('centre', value))
@@ -139,11 +248,13 @@ class ModellingWidget(QWidget):
         self.addMappedLithologiesToProject.clicked.connect(self.onAddModelledLithologiesToProject)
         self.addFaultTracesToProject.clicked.connect(self.onAddFaultTracesToProject)
         self.addScalarFieldToProject.clicked.connect(self.onAddScalarFieldToProject)
-        self.saveThicknessOrderButton.clicked.connect(self.saveThicknessOrder)
+        # self.saveThicknessOrderButton.clicked.connect(self.saveThicknessOrder)
+        self.addUnitButton.clicked.connect(self.addUnitToStratigraphicColumn)
         self.addBlockModelToPyvistaButton.clicked.connect(self.addBlockModelToPyvista)
         self.clearPyvistaButton.clicked.connect(self.clearPyvista)
         self.addSurfacesToPyvistaButton.clicked.connect(self.addModelSurfacesToPyvista)
-        self.addDataToPyvistaButton.clicked.connect(self.addDataToPyvista)      
+        self.addDataToPyvistaButton.clicked.connect(self.addDataToPyvista)
+        QgsProject.instance().readProject.connect(self.loadFromProject)      
     def onModelListItemClicked(self, feature):
         self.activeFeature = self.model[feature.text()]
         self.numberOfElementsSpinBox.setValue(
@@ -180,6 +291,7 @@ class ModellingWidget(QWidget):
             'dip': self.dipField.currentField(),
             'orientation': self.orientationField.currentField(),
             'structure_unitname': self.structuralDataUnitName.currentField(),
+            # 'pitch': self.faultPitchField.currentField()
         }
         faultNetwork = np.zeros((len(self._faults), len(self._faults)))
         for i in range(len(self._faults)):
@@ -218,6 +330,8 @@ class ModellingWidget(QWidget):
         self.logger(message="Model initialised", log_level=0, push=True)
         self.modelList.clear()
         for feature in self.model.features:
+            if feature.name[0] == '_':
+                continue
             item = QListWidgetItem()
             item.setText(feature.name)
             item.setBackground(
@@ -226,7 +340,7 @@ class ModellingWidget(QWidget):
 
             self.modelList.addItem(item)
         self.modelList.itemClicked.connect(self.onModelListItemClicked)
-
+        self.plotter.add_mesh(self.model.bounding_box.vtk().outline())
     def onOrientationTypeChanged(self, index):
         if index == 0:
             self.orientationLabel.setText("Strike")
@@ -243,6 +357,7 @@ class ModellingWidget(QWidget):
         self.orientationField.setLayer(layer)
         self.dipField.setLayer(layer)
         self.structuralDataUnitName.setLayer(layer)
+        # self.saveLayersToProject()
         # self.dipField.setValidator(QDoubleValidator(0.0, 360.0, 2))
         # self.orientationField.setValidator(QDoubleValidator(0.0, 360.0, 2))
 
@@ -362,7 +477,7 @@ class ModellingWidget(QWidget):
 
     def onBasalContactsChanged(self, layer):
         self.unitNameField.setLayer(layer)
-
+        # self.saveLayersToProject()
     def onFaultTraceLayerChanged(self, layer):
         self.faultNameField.setLayer(layer)
         self.faultDipField.setLayer(layer)
@@ -371,56 +486,59 @@ class ModellingWidget(QWidget):
         self.onSelectedFaultChanged(-1)
         self.initFaultSelector()
         self.initFaultNetwork()
+        # self.saveLayersToProject()
 
     def onUnitFieldChanged(self, field):
-        unique_values = set()
-        attributes = {}
-        layer = self.unitNameField.layer()
-        if layer:
-            fields = {}
-            fields['unitname'] = layer.fields().indexFromName(field)
-            if '_ls_th' in [field.name() for field in layer.fields()]:
-                fields['thickness'] = layer.fields().indexFromName('_ls_th')
-            if '_ls_or' in [field.name() for field in layer.fields()]:
-                fields['order'] = layer.fields().indexFromName('_ls_or')
-            if '_ls_col' in [field.name() for field in layer.fields()]:
-                fields['colour'] = layer.fields().indexFromName('_ls_col')
-            field_index = layer.fields().indexFromName(field)
+        if len(self._units) == 0:
 
-            for feature in layer.getFeatures():
-                unique_values.add(str(feature[field_index]))
-                attributes[str(feature[field_index])] = {}
-                for k in fields:
-                    if feature[fields[k]] is not None:
-                        attributes[str(feature[field_index])][k] = feature[fields[k]]
-       
-        colours = random_hex_colour(n=len(unique_values))
-        self._units = dict(
-            zip(
-                list(unique_values),
-                [
-                    {
-                        'thickness': (
-                            attributes[u]['thickness'] if 'thickness' in attributes[u] else 10.0
-                        ),
-                        'order': int(attributes[u]['order']) if 'order' in attributes[u] else i,
-                        'name': u,
-                        'colour': (
-                            str(attributes[u]['colour'])
-                            if 'colour' in attributes[u]
-                            else colours[i]
-                        ),
-                        'contact': (
-                            str(attributes[u]['contact'])
-                            if 'contact' in attributes[u]
-                            else 'Conformable'
-                        ),
-                    }
-                    for i, u in enumerate(unique_values)
-                ],
+            unique_values = set()
+            attributes = {}
+            layer = self.unitNameField.layer()
+            if layer:
+                fields = {}
+                fields['unitname'] = layer.fields().indexFromName(field)
+                if '_ls_th' in [field.name() for field in layer.fields()]:
+                    fields['thickness'] = layer.fields().indexFromName('_ls_th')
+                if '_ls_or' in [field.name() for field in layer.fields()]:
+                    fields['order'] = layer.fields().indexFromName('_ls_or')
+                if '_ls_col' in [field.name() for field in layer.fields()]:
+                    fields['colour'] = layer.fields().indexFromName('_ls_col')
+                field_index = layer.fields().indexFromName(field)
+
+                for feature in layer.getFeatures():
+                    unique_values.add(str(feature[field_index]))
+                    attributes[str(feature[field_index])] = {}
+                    for k in fields:
+                        if feature[fields[k]] is not None:
+                            attributes[str(feature[field_index])][k] = feature[fields[k]]
+        
+            colours = random_hex_colour(n=len(unique_values))
+            self._units = dict(
+                zip(
+                    list(unique_values),
+                    [
+                        {
+                            'thickness': (
+                                attributes[u]['thickness'] if 'thickness' in attributes[u] else 10.0
+                            ),
+                            'order': int(attributes[u]['order']) if 'order' in attributes[u] else i,
+                            'name': u,
+                            'colour': (
+                                str(attributes[u]['colour'])
+                                if 'colour' in attributes[u]
+                                else colours[i]
+                            ),
+                            'contact': (
+                                str(attributes[u]['contact'])
+                                if 'contact' in attributes[u]
+                                else 'Conformable'
+                            ),
+                        }
+                        for i, u in enumerate(unique_values)
+                    ],
+                )
             )
-        )
-        self._initialiseStratigraphicColumn()
+            self._initialiseStratigraphicColumn()
 
     def initFaultSelector(self):
         self.faultSelection.clear()
@@ -495,40 +613,98 @@ class ModellingWidget(QWidget):
         dip_field = self.faultDipField.currentField()
         displacement_field = self.faultDisplacementField.currentField()
         layer = self.faultNameField.layer()
+
         if name_field and layer:
             self._faults = {}
             for feature in layer.getFeatures():
                 self._faults[str(feature[name_field])] = {
-                    'dip': feature.attributeMap().get(dip_field, 90),
+                    'fault_dip': feature.attributeMap().get(dip_field, 90),
                     'displacement': feature.attributeMap().get(displacement_field, 0.1*feature.geometry().length()),
-                    'centre': feature.geometry().centroid().asPoint(),
+                    'fault_centre': {'x':feature.geometry().centroid().asPoint().x(), 'y':feature.geometry().centroid().asPoint().y()},
                     'major_axis': feature.geometry().length(),
                     'intermediate_axis': feature.geometry().length(),
                     'minor_axis': feature.geometry().length() / 3,
                     'active': True,
                     "azimuth": calculateAverageAzimuth(feature.geometry()),
-                    "pitch": feature.attributeMap().get('pitch', 90),
+                    "fault_pitch": feature.attributeMap().get('pitch', 90),
                     "crs": layer.crs().authid(),
                 }
         self.initFaultSelector()
         self.initFaultNetwork()
-
+        # self.saveLayersToProject()
+    
+    def saveLayersToProject(self):
+        if self.basalContactsLayer.currentLayer() is not None:
+            self.project.writeEntry(
+                __title__, "basal_contacts_layer", self.basalContactsLayer.currentLayer().name()
+            )
+        if self.structuralDataLayer.currentLayer() is not None:
+            self.project.writeEntry(
+                __title__, "structural_data_layer", self.structuralDataLayer.currentLayer().name()
+            )
+        if self.faultTraceLayer.currentLayer() is not None:
+            self.project.writeEntry(
+                __title__, "fault_trace_layer", self.faultTraceLayer.currentLayer().name()
+            )
+        if self.DtmLayer.currentLayer() is not None:
+            self.project.writeEntry(__title__, "dtm_layer", self.DtmLayer.currentLayer().name())
+        if self.roiLayer.currentLayer() is not None:
+            self.project.writeEntry(__title__, "roi_layer", self.roiLayer.currentLayer().name())
+        if self.unitNameField.currentField() is not None:
+            self.project.writeEntry(
+                __title__, "unitname_field", self.unitNameField.currentField()
+            )
+        if self.dipField.currentField() is not None:
+            self.project.writeEntry(__title__, "dip_field", self.dipField.currentField())
+        if self.orientationField.currentField() is not None:
+            self.project.writeEntry(
+                __title__, "orientation_field", self.orientationField.currentField()
+            )
+        if self.faultNameField.currentField() is not None:
+            self.project.writeEntry(
+                __title__, "faultname_field", self.faultNameField.currentField()
+            )
+        if self.faultDipField.currentField() is not None:
+            self.project.writeEntry(
+                __title__, "fault_dip_field", self.faultDipField.currentField()
+            )
+        if self.faultDisplacementField.currentField() is not None:
+            self.project.writeEntry(
+                __title__, "fault_displacement_field", self.faultDisplacementField.currentField()
+            )
+        if self.faultPitchField.currentField() is not None:
+            self.project.writeEntry(
+                __title__, "fault_pitch_field", self.faultPitchField.currentField()
+            )
+        if self._units:
+            self.project.writeEntry(__title__, "units", json.dumps(self._units))
+        if self._faults:
+            self.project.writeEntry(__title__, "faults", json.dumps(self._faults))
+        
     def onSelectedFaultChanged(self, index):
         if index >= 0:
             fault = self.faultSelection.currentText()
-            self.faultDipValue.setValue(self._faults[fault]['dip'])
+            self.faultDipValue.setValue(self._faults[fault]['fault_dip'])
+            self.faultPitchValue.setValue(self._faults[fault]['fault_pitch'])
             self.faultDisplacementValue.setValue(self._faults[fault]['displacement'])
             self.faultActiveCheckBox.setChecked(self._faults[fault]['active'])
             self.faultMajorAxisLength.setValue(self._faults[fault]['major_axis'])
             self.faultIntermediateAxisLength.setValue(self._faults[fault]['intermediate_axis'])
             self.faultMinorAxisLength.setValue(self._faults[fault]['minor_axis'])
-            self.faultCentreX.setValue(self._faults[fault]['centre'].x())
-            self.faultCentreY.setValue(self._faults[fault]['centre'].y())
+            self.faultCentreX.setValue(self._faults[fault]['fault_centre']['x'])
+            self.faultCentreY.setValue(self._faults[fault]['fault_centre']['y'])
             # self.faultCentreZ.setValue(self._faults[fault]['centre'].z())
             self._onActiveFaultChanged(self._faults[fault]['active'])
-
+    def saveFaultsToProject(self):
+        if self._faults:
+            self.project.writeEntry(__title__, "faults", json.dumps(self._faults))
+    def saveUnitsToProject(self):
+        if self._units:
+            self.project.writeEntry(__title__, "units", json.dumps(self._units))
+    
     def resetFaultField(self):
         self.faultDipValue.setValue(0)
+        self.faultPitchValue.setValue(0)
         self.faultDisplacementValue.setValue(0)
         self.faultActiveCheckBox.setChecked(0)
         self.faultMajorAxisLength.setValue(0)
@@ -541,6 +717,7 @@ class ModellingWidget(QWidget):
 
     def _onActiveFaultChanged(self, value):
         self.faultDipValue.setEnabled(value)
+        self.faultPitchValue.setEnabled(value)
         self.faultDisplacementValue.setEnabled(value)
         self.faultMajorAxisLength.setEnabled(value)
         self.faultIntermediateAxisLength.setEnabled(value)
@@ -556,7 +733,7 @@ class ModellingWidget(QWidget):
         self._faults[fault][prop] = value
         if prop == 'active':
             self._onActiveFaultChanged(value)
-
+        self.saveFaultsToProject()
     def drawFaultElipse(self):
         fault = self.faultSelection.currentText()
         if fault:
@@ -589,7 +766,7 @@ class ModellingWidget(QWidget):
             child = self.stratigraphicColumnContainer.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-
+        
         def create_lambda(i, direction):
             return lambda: self.onOrderChanged(i, i + direction)
 
@@ -603,7 +780,8 @@ class ModellingWidget(QWidget):
             return pick_color
 
         for i, (unit, value) in enumerate(self._getSortedStratigraphicColumn()):
-            label = QLabel(unit)
+            label = QLineEdit(unit)
+            label.editingFinished.connect(lambda: self.stratigraphicColumnUnitNameChanged(unit, label.text()))
             spin_box = QDoubleSpinBox(maximum=10000, minimum=0)
             spin_box.setValue(value['thickness'])
             order = QLabel()
@@ -642,12 +820,54 @@ class ModellingWidget(QWidget):
             spin_box.valueChanged.connect(
                 lambda value, unit=unit: self.onThicknessChanged(unit, value)
             )
+            remove_button = QPushButton("Remove")
+            remove_button.setStyleSheet(f"background-color: {background_color};")
+            remove_button.clicked.connect(
+                lambda: self.stratigraphicColumnRemoveClicked(unit)
+            )
+            self.stratigraphicColumnContainer.addWidget(remove_button, i, 6)
         self.updateGroups()
-
     def stratigraphicColumnChanged(self, text, unit):
         self._units[unit]['contact'] = text
         self.updateGroups()
-
+        self.saveUnitsToProject()
+    def stratigraphicColumnRemoveClicked(self, unit):
+        if unit in self._units:
+            del self._units[unit]
+        self._initialiseStratigraphicColumn()
+        self.updateGroups()
+        self.saveUnitsToProject()
+    def addUnitToStratigraphicColumn(self):
+        name = 'New Unit'
+        if len(self._units) > 0:
+            name = f'New Unit {len(self._units) + 1}'
+        colour = random_hex_colour(n=1)[0]
+        self._units[name] = {
+            'thickness': 10.0,
+            'order': len(self._units),
+            'name': name,
+            'colour': colour,
+            'contact': 'Conformable',
+        }
+        self._initialiseStratigraphicColumn()
+        self.updateGroups()
+        self.saveUnitsToProject()
+        
+    def stratigraphicColumnUnitNameChanged(self, unit, name):
+        old_name = unit
+        if unit not in self._units:
+            return
+        if name in self._units and name != unit:
+            self.logger(message="Cannot rename, unit name already exists", log_level=2, push=True)
+            return
+        
+        unit = self._units[unit]
+        unit['name'] = name
+        self._units[name] = unit
+        del self._units[old_name]
+        self._initialiseStratigraphicColumn()
+        self.updateGroups()
+        self.saveUnitsToProject()
     def updateGroups(self):
         columns = self._getSortedStratigraphicColumn()
 
@@ -675,11 +895,14 @@ class ModellingWidget(QWidget):
                 units[unit]['order'] = old_index
         self._units = units  # set to copy
         self._initialiseStratigraphicColumn()
-
+        self.saveUnitsToProject()
     def onThicknessChanged(self, unit, value):
         self._units[unit]['thickness'] = value
-
+        self.saveUnitsToProject()
     def onSaveModel(self):
+        if self.model is None:
+            self.logger(message="Cannot save model, model not initialised", log_level=2, push=True)
+            return
         try:
 
             fileFormat = self.fileFormatCombo.currentText()
@@ -688,6 +911,9 @@ class ModellingWidget(QWidget):
             if fileFormat == 'python':
                 fileFormat = 'pkl'
                 self.model.to_file(os.path.join(path, name + "." + fileFormat))
+                with open(os.path.join(path, name + "." + 'py'), 'w') as f:
+                    f.write(f"from loopstructural import GeologicalModel\n")
+                    f.write(f"model = GeologicalModel.from_file('{name + '.' + fileFormat}')\n")
                 return
 
             self.model.save(
@@ -707,27 +933,34 @@ class ModellingWidget(QWidget):
             )
 
     def saveThicknessOrder(self):
-        layer = self.basalContactsLayer.currentLayer()
-        layer.startEditing()
-        field_names = ["_ls_th", "_ls_or", "_ls_col"]
-        field_types = [QVariant.Double, QVariant.Int, QVariant.String]
-        for field_name, field_type in zip(field_names, field_types):
+        pass
+        # if self._units is None:
+        #     self.logger(message="No units found", log_level=2, push=True)
+        #     return
+        # self.project.writeEntry(
+        #     "LoopStructural", "units", json.dumps(self._units)
+        # )
+        # layer = self.basalContactsLayer.currentLayer()
+        # layer.startEditing()
+        # field_names = ["_ls_th", "_ls_or", "_ls_col"]
+        # field_types = [QVariant.Double, QVariant.Int, QVariant.String]
+        # for field_name, field_type in zip(field_names, field_types):
 
-            if field_name not in [field.name() for field in layer.fields()]:
-                layer.dataProvider().addAttributes([QgsField(field_name, field_type)])
-                layer.updateFields()
-        for unit, value in self._units.items():
-            for feature in layer.getFeatures():
-                if feature.attributeMap().get(self.unitNameField.currentField()) == unit:
-                    feature[field_names[0]] = value['thickness']
-                    feature[field_names[1]] = value['order']
-                    feature[field_names[2]] = value['colour']
-                    layer.updateFeature(feature)
-        layer.commitChanges()
-        layer.updateFields()
-        self.logger(
-            message=f"Thickness, colour and order saved to {layer.name()}", log_level=0, push=True
-        )
+        #     if field_name not in [field.name() for field in layer.fields()]:
+        #         layer.dataProvider().addAttributes([QgsField(field_name, field_type)])
+        #         layer.updateFields()
+        # for unit, value in self._units.items():
+        #     for feature in layer.getFeatures():
+        #         if feature.attributeMap().get(self.unitNameField.currentField()) == unit:
+        #             feature[field_names[0]] = value['thickness']
+        #             feature[field_names[1]] = value['order']
+        #             feature[field_names[2]] = value['colour']
+        #             layer.updateFeature(feature)
+        # layer.commitChanges()
+        # layer.updateFields()
+        # self.logger(
+        #     message=f"Thickness, colour and order saved to {layer.name()}", log_level=0, push=True
+        # )
 
     def onPathTextChanged(self, text):
         self.outputPath = text
