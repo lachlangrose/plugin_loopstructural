@@ -17,7 +17,7 @@ tracker=https://github.com/Loop3d/plugin_loopstructural/issues/
 # experimental flag
 deprecated=False
 experimental=True
-qgisMinimumVersion=3.40
+qgisMinimumVersion=3.28
 qgisMaximumVersion=3.99
 
 # versioning
