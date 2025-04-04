@@ -106,14 +106,15 @@ class QgsProcessInputData(ProcessInputData):
                 faults.append(
                     {
                         'fault_name': fault_name,
-                        'dip': fault['dip'],
+                        'fault_dip': fault['fault_dip'],
                         'displacement': fault['displacement'],
                         'major_axis': fault['major_axis'],
                         'intermediate_axis': fault['intermediate_axis'],
                         'minor_axis': fault['minor_axis'],
-                        'centreEasting': fault['centre'].x(),
-                        'centreNorthing': fault['centre'].y(),
-                        'centreElevation': 0  # if fault['centre']fault['centre'].z(),
+                        'centreEasting': fault['fault_centre']['x'],
+                        'centreNorthing': fault['fault_centre']['y'],
+                        'centreElevation': 0,  # if fault['centre']fault['centre'].z(),
+                        'fault_pitch': fault['fault_pitch'],
                         # 'active': fault['active'],
                         # 'azimuth': fault['azimuth'],
                         # 'crs': fault['crs'],
@@ -126,7 +127,6 @@ class QgsProcessInputData(ProcessInputData):
             fault_properties['fault_name'] = fault_properties['fault_name'].astype(str)
             fault_properties = fault_properties.set_index('fault_name')
             fault_data['fault_name'] = fault_data['fault_name'].astype(str)
-        print(stratigraphic_order)
         super().__init__(
             contacts=contact_locations,
             stratigraphic_order=stratigraphic_order,
