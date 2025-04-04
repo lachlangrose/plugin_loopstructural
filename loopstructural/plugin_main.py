@@ -7,6 +7,7 @@
 # standard
 from functools import partial
 from pathlib import Path
+import os
 
 # PyQGIS
 from qgis.core import QgsApplication, QgsSettings
@@ -82,8 +83,8 @@ class LoopstructuralPlugin:
             lambda: self.iface.showOptionsDialog(currentPage="mOptionsPage{}".format(__title__))
         )
         self.action_modelling = QAction(
-            QgsApplication.getThemeIcon("console/iconSettingsConsole.svg"),
-            self.tr("Modelling"),
+            QIcon(os.path.dirname(__file__)+"/icon.png"),
+            self.tr("LoopStructural Modelling"),
             self.iface.mainWindow(),
         )
 
