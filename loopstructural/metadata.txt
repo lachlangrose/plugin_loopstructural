@@ -4,7 +4,7 @@ about=Implict 3D geological modelling in QGIS
 category=Vector
 hasProcessingProvider=False
 description=This plugin provides an interface to LoopStructural a 3D geological modelling library.
-icon=resources/images/default_icon.png
+icon=icon.png
 tags=geology,structural geology,3D geology,mining
 
 # credits and contact
