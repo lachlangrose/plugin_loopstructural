@@ -415,6 +415,8 @@ class ModellingWidget(QWidget):
                     self.plotter.add_mesh(d.vtk(), show_scalar_bar=False)
     def clearPyvista(self):
         self.plotter.clear()
+        if self.model is not None:
+            self.plotter.add_mesh(self.model.bounding_box.vtk().outline())
     def onEvaluateModelOnLayer(self):
         layer = self.evaluateModelOnLayerSelector.currentLayer()
 
@@ -781,7 +783,7 @@ class ModellingWidget(QWidget):
 
         for i, (unit, value) in enumerate(self._getSortedStratigraphicColumn()):
             label = QLineEdit(unit)
-            label.editingFinished.connect(lambda: self.stratigraphicColumnUnitNameChanged(unit, label.text()))
+            label.editingFinished.connect(lambda unit=unit, label=label: self.stratigraphicColumnUnitNameChanged(unit, label.text()))
             spin_box = QDoubleSpinBox(maximum=10000, minimum=0)
             spin_box.setValue(value['thickness'])
             order = QLabel()
@@ -823,7 +825,7 @@ class ModellingWidget(QWidget):
             remove_button = QPushButton("Remove")
             remove_button.setStyleSheet(f"background-color: {background_color};")
             remove_button.clicked.connect(
-                lambda: self.stratigraphicColumnRemoveClicked(unit)
+                lambda value, unit=unit: self.stratigraphicColumnRemoveClicked(unit)
             )
             self.stratigraphicColumnContainer.addWidget(remove_button, i, 6)
         self.updateGroups()
@@ -835,7 +837,6 @@ class ModellingWidget(QWidget):
         if unit in self._units:
             del self._units[unit]
         self._initialiseStratigraphicColumn()
-        self.updateGroups()
         self.saveUnitsToProject()
     def addUnitToStratigraphicColumn(self):
         name = 'New Unit'
@@ -850,23 +851,23 @@ class ModellingWidget(QWidget):
             'contact': 'Conformable',
         }
         self._initialiseStratigraphicColumn()
-        self.updateGroups()
         self.saveUnitsToProject()
         
     def stratigraphicColumnUnitNameChanged(self, unit, name):
+        
         old_name = unit
+        if unit == name:
+            return  
         if unit not in self._units:
             return
         if name in self._units and name != unit:
             self.logger(message="Cannot rename, unit name already exists", log_level=2, push=True)
             return
-        
         unit = self._units[unit]
         unit['name'] = name
         self._units[name] = unit
         del self._units[old_name]
         self._initialiseStratigraphicColumn()
-        self.updateGroups()
         self.saveUnitsToProject()
     def updateGroups(self):
         columns = self._getSortedStratigraphicColumn()
