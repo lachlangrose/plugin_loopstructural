@@ -57,5 +57,5 @@ jobs:
         --create-plugin-repo
         --osgeo-username "$OSGEO_USERNAME"
         --osgeo-password "$OSGEO_PASSWORD"
-        --github-token
+        --github-token ${{ secrets.GITHUB_TOKEN }}
 
