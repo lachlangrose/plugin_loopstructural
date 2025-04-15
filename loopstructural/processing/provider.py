@@ -7,7 +7,7 @@ Processing provider module.
 # PyQGIS
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon 
 
 # project
 from loopstructural.__about__ import __icon_path__, __title__, __version__
