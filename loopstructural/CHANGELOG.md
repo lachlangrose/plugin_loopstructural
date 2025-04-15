@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/lachlangrose/plugin_loopstructural/compare/v0.1.8...v0.1.9) (2025-04-15)
+
+
+### Bug Fixes
+
+* bump ([1ba26b1](https://github.com/lachlangrose/plugin_loopstructural/commit/1ba26b1ec47d8f2277cd11c484507755bdfc4818))
+
 ## [0.1.8](https://github.com/lachlangrose/plugin_loopstructural/compare/v0.1.7...v0.1.8) (2025-04-15)
 
 
