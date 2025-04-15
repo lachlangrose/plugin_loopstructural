@@ -1,7 +1,7 @@
 #! python3
 
 """
-    Processing provider module.
+Processing provider module.
 """
 
 # PyQGIS

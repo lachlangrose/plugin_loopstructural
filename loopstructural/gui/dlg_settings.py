@@ -1,7 +1,7 @@
 #! python3
 
 """
-    Plugin settings form integrated into QGIS 'Options' menu.
+Plugin settings form integrated into QGIS 'Options' menu.
 """
 
 # standard

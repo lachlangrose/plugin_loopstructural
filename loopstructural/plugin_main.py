@@ -1,12 +1,12 @@
 #! python3
 
 """
-    Main plugin module.
+Main plugin module.
 """
 
 # standard
 from functools import partial
-from pathlib import Path 
+from pathlib import Path
 import os
 
 # PyQGIS
@@ -14,7 +14,7 @@ from qgis.core import QgsApplication, QgsSettings
 from qgis.gui import QgisInterface
 from qgis.PyQt.QtCore import QCoreApplication, QLocale, QTranslator, QUrl, Qt
 from qgis.PyQt.QtGui import QDesktopServices, QIcon
-from qgis.PyQt.QtWidgets import QAction, QMenu, QDockWidget
+from qgis.PyQt.QtWidgets import QAction, QDockWidget
 
 # project
 from loopstructural.__about__ import (
@@ -63,7 +63,6 @@ class LoopstructuralPlugin:
         self.options_factory = PlgOptionsFactory()
         self.iface.registerOptionsWidgetFactory(self.options_factory)
 
-        
         # -- Actions
         self.action_help = QAction(
             QgsApplication.getThemeIcon("mActionHelpContents.svg"),
@@ -83,7 +82,7 @@ class LoopstructuralPlugin:
             lambda: self.iface.showOptionsDialog(currentPage="mOptionsPage{}".format(__title__))
         )
         self.action_modelling = QAction(
-            QIcon(os.path.dirname(__file__)+"/icon.png"),
+            QIcon(os.path.dirname(__file__) + "/icon.png"),
             self.tr("LoopStructural Modelling"),
             self.iface.mainWindow(),
         )
@@ -117,11 +116,11 @@ class LoopstructuralPlugin:
         self.modelling_dockwidget.setWidget(self.model_setup_widget)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.modelling_dockwidget)
         right_docks = [
-                d
-                for d in self.iface.mainWindow().findChildren(QDockWidget)
-                if self.iface.mainWindow().dockWidgetArea(d) == Qt.RightDockWidgetArea
-            ]
-         # If there are other dock widgets, tab this one with the first one found
+            d
+            for d in self.iface.mainWindow().findChildren(QDockWidget)
+            if self.iface.mainWindow().dockWidgetArea(d) == Qt.RightDockWidgetArea
+        ]
+        # If there are other dock widgets, tab this one with the first one found
         if right_docks:
             for dock in right_docks:
                 if dock != self.modelling_dockwidget:
@@ -135,10 +134,6 @@ class LoopstructuralPlugin:
         self.action_modelling.triggered.connect(
             self.modelling_dockwidget.toggleViewAction().trigger
         )
-
-
-
-
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
