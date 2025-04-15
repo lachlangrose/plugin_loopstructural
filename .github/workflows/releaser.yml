@@ -45,17 +45,16 @@ jobs:
       run: qgis-plugin-ci changelog ${GITHUB_REF/refs\/tags\//} >> release.md
 
 
-    - name: Deploy plugin
-      env:
-        OSGEO_USERNAME: ${{ secrets.OSGEO_USERNAME }}
-        OSGEO_PASSWORD: ${{ secrets.OSGEO_PASSWORD }}
+    # - name: Deploy plugin
+    #   env:
+    #     OSGEO_USERNAME: ${{ secrets.OSGEO_USERNAME }}
+    #     OSGEO_PASSWORD: ${{ secrets.OSGEO_PASSWORD }}
 
-      run: >-
-        qgis-plugin-ci
-        release ${GITHUB_REF/refs\/tags\//}
-        --allow-uncommitted-changes
-        --create-plugin-repo
-        --osgeo-username "$OSGEO_USERNAME"
-        --osgeo-password "$OSGEO_PASSWORD"
-        --github-token ${{ secrets.GITHUB_TOKEN }}
+    #   run: >-
+    #     qgis-plugin-ci
+    #     release ${GITHUB_REF/refs\/tags\//}
+    #     --allow-uncommitted-changes
+    #     --create-plugin-repo
+    #     --osgeo-username "$OSGEO_USERNAME"
+    #     --osgeo-password "$OSGEO_PASSWORD"
 
