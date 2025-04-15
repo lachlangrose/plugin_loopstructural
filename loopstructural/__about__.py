@@ -12,7 +12,7 @@ See: https://packaging.python.org/guides/single-sourcing-package-version/
 # standard library
 from configparser import ConfigParser
 from datetime import date
-from pathlib import Path
+from pathlib import Path 
 
 # ############################################################################
 # ########## Globals ###############
