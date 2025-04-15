@@ -55,6 +55,6 @@ jobs:
         release ${GITHUB_REF/refs\/tags\//}
         --allow-uncommitted-changes
         --create-plugin-repo
-        --osgeo-username "$env:OSGEO_USERNAME"
-        --osgeo-password "$env:OSGEO_PASSWORD"
+        --osgeo-username "$OSGEO_USERNAME"
+        --osgeo-password "$OSGEO_PASSWORD"
 
