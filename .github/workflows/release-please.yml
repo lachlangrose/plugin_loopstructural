@@ -18,9 +18,11 @@ jobs:
       - uses: GoogleCloudPlatform/release-please-action@v4
         id: release
 
-          
+      - name: Debug release output
+        run: echo "release_created=${{ steps.release.outputs.release_created }}"     
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+    
   package:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
