@@ -19,4 +19,4 @@ Unreleased
 ## 0.1.0 - 2024-09-18
 
 - First release
-- Generated with the [QGIS Plugins templater](https://oslandia.gitlab.io/qgis/template-qgis-plugin/)
+- Generated with the [QGIS Plugins templater](https://oslandia.gitlab.io/qgis/template-qgis-plugin/) 
