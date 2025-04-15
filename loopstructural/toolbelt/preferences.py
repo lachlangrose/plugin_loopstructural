@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, fields
 from qgis.core import QgsSettings
 
 # package
-import loopstructural.toolbelt.log_handler as log_hdlr
+import loopstructural.toolbelt.log_handler as log_hdlr 
 from loopstructural.__about__ import __title__, __version__
 
 # ############################################################################
