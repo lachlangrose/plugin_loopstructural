@@ -20,7 +20,7 @@ jobs:
         id: release
 
       - name: Debug release output
-        run: echo "release_created=${{ steps.release.outputs.releases_created }}"
+        run: echo "release_created=${{ steps.release.outputs.loopstructural--tag_name }}"
   
     outputs:
       release_created: ${{ steps.release.outputs.releases_created }}
