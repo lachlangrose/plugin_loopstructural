@@ -32,14 +32,16 @@ class ObjectListWidget(QWidget):
         self.treeWidget.installEventFilter(self)
         self.treeWidget.itemSelectionChanged.connect(self.on_object_selected)
         self.treeWidget.itemDoubleClicked.connect(self.onDoubleClick)
+
     def onDoubleClick(self, item, column):
         self.viewer.reset_camera()
+
     def on_object_selected(self):
         selected_items = self.treeWidget.selectedItems()
         if not selected_items:
             # if nothing selected keep the previous selection.
             # Need to select a new object to change its properties
-            return 
+            return
 
         # For simplicity, just handle the first selected item
         item = selected_items[0]
@@ -49,6 +51,7 @@ class ObjectListWidget(QWidget):
         if hasattr(self, 'properties_widget') and self.properties_widget:
 
             self.properties_widget.setCurrentObject(object_label)
+
     def update_object_list(self, new_object):
         """Rebuild the tree so top-level items are the entries in
         `viewer.meshes`. Each mesh gets a visibility checkbox and child
@@ -252,21 +255,23 @@ class ObjectListWidget(QWidget):
         if mesh_dict is None:
             return
         mesh = mesh_dict.get('mesh', None)
+        print(mesh)
         if mesh is None:
             return
         # Determine available formats based on object type and dependencies
         formats = []
         try:
-            import geoh5py  
+            import geoh5py
+
             has_geoh5py = True
         except ImportError:
             has_geoh5py = False
 
-        if hasattr(object, "faces"):  # Likely a surface/mesh
+        if hasattr(mesh, "faces"):  # Likely a surface/mesh
             formats = ["obj", "vtk", "ply"]
             if has_geoh5py:
                 formats.append("geoh5")
-        elif hasattr(object, "points"):  # Likely a point cloud
+        elif hasattr(mesh, "points"):  # Likely a point cloud
             formats = ["vtp"]
             if has_geoh5py:
                 formats.append("geoh5")
@@ -297,27 +302,17 @@ class ObjectListWidget(QWidget):
 
         try:
             if selected_format == "obj":
-                (
-                    mesh.save(file_path)
-                    if hasattr(mesh, "save")
-                    else pv.save_meshio(file_path, mesh)
-                )
+                (mesh.save(file_path) if hasattr(mesh, "save") else pv.save_meshio(file_path, mesh))
             elif selected_format == "vtk":
                 mesh.save(file_path) if hasattr(mesh, "save") else pv.save_meshio(file_path, mesh)
             elif selected_format == "ply":
                 pv.save_meshio(file_path, mesh)
             elif selected_format == "vtp":
-                (
-                    mesh.save(file_path)
-                    if hasattr(mesh, "save")
-                    else pv.save_meshio(file_path, mesh)
-                )
+                (mesh.save(file_path) if hasattr(mesh, "save") else pv.save_meshio(file_path, mesh))
             elif selected_format == "geoh5":
                 with geoh5py.Geoh5(file_path, overwrite=True) as geoh5:
                     if hasattr(mesh, "faces"):
-                        geoh5.add_surface(
-                            name=object_label, vertices=mesh.points, faces=mesh.faces
-                        )
+                        geoh5.add_surface(name=object_label, vertices=mesh.points, faces=mesh.faces)
                     else:
                         geoh5.add_points(name=object_label, vertices=mesh.points)
             print(f"Exported {object_label} to {file_path} as {selected_format}")
@@ -356,17 +351,19 @@ class ObjectListWidget(QWidget):
             self.load_feature_from_file()
         elif action == addQgsLayerAction:
             self.add_object_from_qgis_layer()
+
     def add_feature_from_geological_model(self):
         # Logic to add a feature from the geological model
         print("Adding feature from geological model")
+
     def add_object_from_qgis_layer(self):
         """Show a dialog to pick a QGIS point vector layer, convert it to a VTK/PyVista
         point cloud and copy numeric attributes as point scalars.
         """
         # Local imports so the module can still be imported when QGIS GUI isn't available
         try:
-            from qgis.gui import QgsMapLayerComboBox
             from qgis.core import QgsMapLayerProxyModel, QgsWkbTypes
+            from qgis.gui import QgsMapLayerComboBox
         except Exception as e:
             print("QGIS GUI components are not available:", e)
             return
@@ -376,11 +373,11 @@ class ObjectListWidget(QWidget):
         except Exception as e:
             print("Could not import qgsLayerToGeoDataFrame:", e)
             return
-        from loopstructural.main.model_manager import AllSampler
-
-        from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QMessageBox
         import numpy as np
         import pandas as pd
+        from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout
+
+        from loopstructural.main.model_manager import AllSampler
 
         dialog = QDialog(self)
         dialog.setWindowTitle("Add from QGIS layer")
@@ -407,7 +404,10 @@ class ObjectListWidget(QWidget):
 
         # Basic geometry check - ensure the layer contains point geometry
         try:
-            if layer.wkbType() != QgsWkbTypes.Point and QgsWkbTypes.geometryType(layer.wkbType()) != QgsWkbTypes.PointGeometry:
+            if (
+                layer.wkbType() != QgsWkbTypes.Point
+                and QgsWkbTypes.geometryType(layer.wkbType()) != QgsWkbTypes.PointGeometry
+            ):
                 # Some QGIS versions use different enums; allow via proxy filter primarily
                 # If the check fails, continue but warn
                 print("Selected layer does not appear to be a point layer. Proceeding anyway.")
@@ -419,19 +419,23 @@ class ObjectListWidget(QWidget):
         gdf = qgsLayerToGeoDataFrame(layer)
         sampler = AllSampler()
         # sample the points from the gdf with no DTM and include Z if present
-        df = sampler(gdf,None,True)
+        df = sampler(gdf, None, True)
         if df is None or df.empty:
             QMessageBox.warning(self, "No data", "Selected layer contains no points.")
             return
 
         # Ensure X,Y,Z columns present
         if not {"X", "Y", "Z"}.issubset(df.columns):
-            QMessageBox.warning(self, "Invalid data", "Layer conversion did not produce X/Y/Z columns.")
+            QMessageBox.warning(
+                self, "Invalid data", "Layer conversion did not produce X/Y/Z columns."
+            )
             return
 
         # Build points array
         try:
-            pts = np.vstack([df["X"].to_numpy(), df["Y"].to_numpy(), df["Z"].to_numpy()]).T.astype(float)
+            pts = np.vstack([df["X"].to_numpy(), df["Y"].to_numpy(), df["Z"].to_numpy()]).T.astype(
+                float
+            )
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to build point coordinates: {e}")
             return
