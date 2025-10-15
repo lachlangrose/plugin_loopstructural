@@ -2,10 +2,10 @@ import json
 from collections import defaultdict
 
 import numpy as np
+from LoopStructural.datatypes import BoundingBox
 from qgis.core import QgsPointXY, QgsProject, QgsVectorLayer
 
 from LoopStructural import FaultTopology, StratigraphicColumn
-from LoopStructural.datatypes import BoundingBox
 
 from .vectorLayerWrapper import qgsLayerToGeoDataFrame
 
@@ -84,9 +84,11 @@ class ModellingDataManager:
 
             except json.JSONDecodeError as e:
                 self.logger(message=f"Error loading data manager: {e}", log_level=2)
+
     def onNewProject(self):
         self.logger(message="New project created, clearing data...", log_level=3)
         self.update_from_dict({})
+
     def set_model_manager(self, model_manager):
         """Set the model manager for the data manager."""
         if model_manager is None:
@@ -188,7 +190,7 @@ class ModellingDataManager:
     def set_use_dem(self, use_dem):
         self.use_dem = use_dem
         self._model_manager.set_dem_function(self.dem_function)
-        
+
     def set_basal_contacts(self, basal_contacts, unitname_field=None, use_z_coordinate=False):
         """Set the basal contacts for the model."""
         self._basal_contacts = {
@@ -415,6 +417,7 @@ class ModellingDataManager:
             and structural_orientations['layer'] is not None
         ):
             structural_orientations['layer'] = structural_orientations['layer'].name()
+        dem_layer_name = None
         if self.dem_layer is not None:
             try:
                 dem_layer_name = self.dem_layer.name()
@@ -541,7 +544,6 @@ class ModellingDataManager:
         if self.stratigraphic_column_callback:
             self.stratigraphic_column_callback()
 
-
     def find_layer_by_name(self, layer_name):
         """Find a layer by name in the project."""
         if layer_name is None:
@@ -585,7 +587,10 @@ class ModellingDataManager:
             )  # Convert QgsVectorLayer to GeoDataFrame
         if self._model_manager:
             self._model_manager.add_foliation(
-                foliation_name, foliation_data, folded_feature_name=folded_feature_name,use_z_coordinate=True
+                foliation_name,
+                foliation_data,
+                folded_feature_name=folded_feature_name,
+                use_z_coordinate=True,
             )
             self.logger(message=f"Added foliation '{foliation_name}' to the model.")
         else:
