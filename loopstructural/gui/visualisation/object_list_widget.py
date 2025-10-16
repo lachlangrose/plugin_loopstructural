@@ -42,6 +42,7 @@ class ObjectListWidget(QWidget):
             # if nothing selected keep the previous selection.
             # Need to select a new object to change its properties
             return
+            return
 
         # For simplicity, just handle the first selected item
         item = selected_items[0]
@@ -262,7 +263,6 @@ class ObjectListWidget(QWidget):
         formats = []
         try:
             import geoh5py
-
             has_geoh5py = True
         except ImportError:
             has_geoh5py = False

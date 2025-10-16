@@ -47,7 +47,7 @@ class BaseFeatureDetailsPanel(QWidget):
         # Set the main layout
         self.setLayout(mainLayout)
 
-        
+
         ## define interpolator parameters
         # Regularisation spin box
         self.regularisation_spin_box = QDoubleSpinBox()
@@ -184,11 +184,11 @@ class BaseFeatureDetailsPanel(QWidget):
                     self.meshObjectCombo.addItems(mesh_names)
         self.evaluate_target_combo.currentIndexChanged.connect(_on_evaluate_target_changed)
 
-        
 
-        
 
-        
+
+
+
 
         # Export button
         self.export_points_button = QPushButton("Export to QGIS points")
@@ -204,7 +204,7 @@ class BaseFeatureDetailsPanel(QWidget):
         # These blocks are intentionally minimal now (only a disabled label) and
         # will be populated with export/evaluate controls later.
         if self.model_manager is not None:
-            for feat in self.model_manager.features(): 
+            for feat in self.model_manager.features():
                 block = QWidget()
                 block.setObjectName(f"export_block_{getattr(feat, 'name', 'feature')}")
                 block_layout = QVBoxLayout(block)
@@ -214,7 +214,7 @@ class BaseFeatureDetailsPanel(QWidget):
 
         self.layout.addWidget(self.export_eval_container)
 
-    
+
 
     def _on_bounding_box_updated(self, bounding_box):
         """Callback to update UI widgets when bounding box object changes externally.
@@ -326,10 +326,10 @@ class BaseFeatureDetailsPanel(QWidget):
         if self.evaluate_target_combo.currentIndex() == 0:
             # use bounding-box resolution or custom nsteps
             logger.info('Using bounding box cell centres for evaluation')
-            
-            
 
-            
+
+
+
             pts = self.model_manager.model.bounding_box.cell_centres()
             # no extra attributes for grid
             attributes_df = None
@@ -396,7 +396,7 @@ class BaseFeatureDetailsPanel(QWidget):
                 crs = None
         elif self.evaluate_target_combo.currentIndex() == 2:
             # Evaluate on an object from the viewer
-            # These are all pyvista objects and we want to add 
+            # These are all pyvista objects and we want to add
             # the scalar as a new field to the objects
 
             viewer = self.plugin.loop_widget.visualisation_widget.plotter
@@ -615,7 +615,7 @@ class StructuralFrameFeatureDetailsPanel(BaseFeatureDetailsPanel):
 class FoldedFeatureDetailsPanel(BaseFeatureDetailsPanel):
     def __init__(self, parent=None, *, feature=None, model_manager=None, data_manager=None):
         super().__init__(parent, feature=feature, model_manager=model_manager, data_manager=data_manager)
-    def addMidBlock(self):    
+    def addMidBlock(self):
         # Remove redundant layout setting
         # self.setLayout(self.layout)
         form_layout = QFormLayout()
@@ -737,5 +737,3 @@ class FoldedFeatureDetailsPanel(BaseFeatureDetailsPanel):
             vector = plungeazimuth2vector(plunge, azimuth)[0]
             if plunge is not None and azimuth is not None:
                 self.feature.builder.update_build_arguments({'fold_axis': vector.tolist()})
-
-

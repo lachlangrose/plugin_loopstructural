@@ -61,7 +61,7 @@ class LoopPyVistaQTPlotter(QtInteractor):
         # Remove any previous entry with the same name (to keep metadata consistent)
         # if name in self.meshes:
         #     try:
-                
+
         #         self.remove_object(name)
         #     except Exception:
         #         # ignore removal errors and proceed to add
@@ -73,7 +73,7 @@ class LoopPyVistaQTPlotter(QtInteractor):
 
         # Build add_mesh kwargs
         add_kwargs: Dict[str, Any] = {}
-        
+
         if use_scalar:
             add_kwargs['scalars'] = scalars
             add_kwargs['cmap'] = cmap

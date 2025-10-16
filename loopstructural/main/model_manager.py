@@ -648,7 +648,7 @@ class GeologicalModelManager:
         except Exception:
             print("Shapely not available; geometry column will be omitted." )
             _Point = None
-        
+
         pts = np.asarray(points)
         if pts.ndim != 2 or pts.shape[1] < 3:
             raise ValueError('points must be an Nx3 array')

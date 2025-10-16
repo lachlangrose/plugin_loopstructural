@@ -117,7 +117,7 @@ class StratColumnWidget(QWidget):
         unit_widget.thicknessChanged.connect(
             lambda: self.update_element(unit_widget)
         )  # Connect thickness change signal
-        
+
         unit_widget.set_thickness(unit_data.get('thickness', 0.0))  # Set initial thickness
         unit_widget.colourChanged.connect(
             lambda: self.update_element(unit_widget)
